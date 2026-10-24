@@ -9,6 +9,11 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
@@ -19,4 +24,5 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["vite.config.ts", "scripts"]
+  "include": ["vite.config.ts", "vitest.config.ts", "scripts", "tests"]
 }
