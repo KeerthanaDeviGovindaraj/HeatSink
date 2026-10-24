@@ -12,6 +12,7 @@ import {
 } from './components/SiteEditor';
 import { SpeciesPicker } from './components/SpeciesPicker';
 import { CompareTable } from './components/CompareTable';
+import { CumulativePanel } from './components/CumulativePanel';
 import type { SavedSite } from './components/compare';
 import {
   displayableSpecies,
@@ -20,6 +21,12 @@ import {
 import { evaluateOutfallPlacement } from './components/placement';
 import { PRESET_SITES, type PresetSite } from './model/presets';
 import { plumeRings, type PlumeRing } from './model/plume';
+import {
+  cumulativeResult,
+  type CumulativeResult,
+  type CumulativeSite,
+} from './model/cumulative';
+import { samplePoints } from './model/grid';
 import { runSite } from './model/runSite';
 import { NEGLIGIBLE_C } from './model/constants';
 import {
@@ -102,6 +109,11 @@ export function App() {
   const [savedSites, setSavedSites] = useState<SavedSite[]>([]);
   const [nextCustomSite, setNextCustomSite] = useState(1);
 
+  // Cumulative mode (R8, stretch): when on, sum every saved site's screening
+  // plume at each point on one shared grid and recompute areas/species. Off by
+  // default so single-site behavior is unchanged.
+  const [cumulativeMode, setCumulativeMode] = useState(false);
+
   // Run the model whenever the outfall, params, baseline cells, or land change
   // (R4.4). Memoized so dragging a slider doesn't recompute until a dependency
   // actually changes. Returns { result, rings } with a friendly error message
@@ -153,6 +165,33 @@ export function App() {
       speciesName: selectedSpecies.name,
     };
   }, [result, selectedSpecies]);
+
+  // Cumulative-mode result (R8, stretch). DESIGN DECISION — shared grid:
+  // sumImpacts needs an index-aligned grid, but saved sites have different
+  // outfalls (different native grids). The correct superposition is over ONE
+  // shared grid: we build samplePoints() centered on the FOCUSED outfall (or,
+  // if none is placed, the first saved site's outfall), then cumulativeImpacts
+  // evaluates each saved site's excess AT every shared point (distance from
+  // that site's own outfall) and sums — never misusing sumImpacts on misaligned
+  // native grids. Area/coverage/species reuse the single-site risk functions so
+  // the numbers stay consistent. Only recomputed while the toggle is on, since
+  // the shared grid is the heavy part (design.md "Performance").
+  const cumulative = useMemo<CumulativeResult | null>(() => {
+    if (!cumulativeMode || savedSites.length === 0) return null;
+
+    const gridCenter = outfall ?? {
+      lat: savedSites[0].result.inputs.lat,
+      lon: savedSites[0].result.inputs.lon,
+    };
+    const sharedGrid = samplePoints(gridCenter, cells, land);
+
+    const sites: CumulativeSite[] = savedSites.map((s) => ({
+      outfall: { lat: s.result.inputs.lat, lon: s.result.inputs.lon },
+      thermal: s.result.thermal,
+    }));
+
+    return cumulativeResult(sites, sharedGrid, modelSpecies);
+  }, [cumulativeMode, savedSites, outfall, cells, land, modelSpecies]);
 
   // Preset buttons set both location and facility params in one click (R3.1).
   const handleSelectPreset = useCallback((preset: PresetSite) => {
@@ -376,6 +415,37 @@ export function App() {
                 species={shownSpecies}
                 onRemove={handleRemoveSite}
               />
+            </div>
+
+            {/* Cumulative mode (R8, stretch): toggle + superposed results. */}
+            <div style={{ marginTop: '1rem' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.6rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  color: savedSites.length === 0 ? '#90a4ae' : '#0b3d5c',
+                  cursor: savedSites.length === 0 ? 'not-allowed' : 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={cumulativeMode}
+                  disabled={savedSites.length === 0}
+                  onChange={(e) => setCumulativeMode(e.target.checked)}
+                />
+                Cumulative mode (sum all saved sites)
+              </label>
+              {cumulativeMode && (
+                <CumulativePanel
+                  result={cumulative}
+                  species={shownSpecies}
+                  savedCount={savedSites.length}
+                />
+              )}
             </div>
           </>
         )}
