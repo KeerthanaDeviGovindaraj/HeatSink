@@ -35,9 +35,12 @@ import {
 } from './colorScale';
 import { layerLabel } from './layerLabels';
 
-// MA coast view: data spans lat 41.2–43.0, lon -71.2 to -69.8 (R1.1).
-const MAP_CENTER: [number, number] = [42.1, -70.5];
-const MAP_ZOOM = 8;
+// MA coast view framed to the baseline data (FIShBOT spans lat 41.55–42.44,
+// lon -70.83 to -69.8; presets cluster in Cape Cod/Massachusetts Bay). Center
+// on that cluster and zoom in so the demo opens on the data, not the whole
+// Northeast (R1.1).
+const MAP_CENTER: [number, number] = [42.0, -70.4];
+const MAP_ZOOM = 9;
 const OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const OSM_ATTRIBUTION = '&copy; OpenStreetMap contributors';
 
