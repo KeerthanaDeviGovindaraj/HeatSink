@@ -12,7 +12,17 @@ import type {
   Station,
 } from './types';
 
-const DATA_BASE = '/data';
+// Honor Vite's base URL so data resolves under the deploy base:
+// '/HeatSink/' on GitHub Pages, '/' in local dev. An absolute '/data'
+// 404s under a project Pages path. BASE_URL always ends with a slash;
+// collapse any resulting double slash.
+// Vite statically replaces import.meta.env.BASE_URL at build time; type it
+// locally so the project build (tsc -b) compiles without relying on the
+// ambient vite/client reference being loaded into this program.
+const BASE_URL =
+  (import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ??
+  '/';
+const DATA_BASE = `${BASE_URL}data`.replace(/\/+/g, '/');
 
 /**
  * Adapt a committed FIShBOT {@link OceanRow} to a model {@link BaselineCell}.
