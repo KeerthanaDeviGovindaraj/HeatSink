@@ -5,6 +5,10 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    // Only load types that are explicitly imported or referenced; do NOT
+    // auto-scan node_modules/@types. This keeps the build immune to stray
+    // folder-sync duplicate type dirs (e.g. "@types/react 2").
+    "types": [],
 
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

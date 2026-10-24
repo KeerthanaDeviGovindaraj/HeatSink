@@ -55,6 +55,12 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 15:35 | Merge main into keerthana to catch up branch | other | Merged origin/main (29 commits) into keerthana, no conflicts; tsc + 150 tests green; pushed 69b1480 |
 | 15:37 | Update spec to v2.2 (maxSafeMW, share link, print brief) | spec task | Added-only edits to thermal-model, requirements (R11-13, P17-18+22-23), design, tasks (sections 11-13); no existing content/checkmarks changed |
 | 15:38 | Commit + push spec v2.2, open PR #13 to main | spec task | Pushed 81258c0 to keerthana; PR #13 (keerthana->main) open and MERGEABLE; excluded mcp.json (leaked PAT) |
+| 15:44 | Tasks 11.1-11.2: maxSafeMW engine + P17/P18 property tests | property test | maxSafe.ts binary search reusing sample points; P17/P18 pass (null case + facilityMW independence); 153 tests green; pushed c50fd10 |
+| 15:48 | PR #14 (maxSafe), submission-rules audit, 10.4 write-up | spec task | Opened PR #14; audited vs Hackachusetts rules (repo/.kiro/PBT/license OK, video 10.3 still TODO); wrote docs/HOW_KIRO_WAS_USED.md, pushed 699250a |
+| 15:55 | README track + write-up link, mark 10.4, merge PR #13/#14, clean 38 dup files | other | README track->ClimaTech & Clean Energy + write-up link; 10.4 done; PRs #13/#14 merged; removed 38 untracked " 2." sync dupes; 153 tests green; pushed c2e799f |
+| 15:58 | Diagnose + fix failed CI build (maxSafe literal types) | other | tsc -b failed on MIN_MW/MAX_MW literal types (fixed on main by 49bca6e); merged fix, clean npm ci cleared stray @types " 2" dirs; build + 153 tests green; pushed 1eeae86 |
+| 16:01 | Harden build against folder-sync " 2" duplicates | other | tsconfig.app types:[] (no @types auto-scan) + .gitignore "* N.*" guard; verified build passes with stray @types/react 2 present; 153 tests green; pushed 04466c9 |
+| 16:06 | Fix blank basemap (OSM tile URL {z}/{x}/{y}) | MCP | Playwright MCP found tiles 400ing (wrong x/y/z order, zoom 77); fixed template, all 12 tiles load (naturalWidth 256); build + 153 tests green; pushed 53f2633 |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:
