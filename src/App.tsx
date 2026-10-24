@@ -12,6 +12,7 @@ import {
 } from './components/SiteEditor';
 import { SpeciesPicker } from './components/SpeciesPicker';
 import { CompareTable } from './components/CompareTable';
+import { CumulativePanel } from './components/CumulativePanel';
 import type { SavedSite } from './components/compare';
 import {
   displayableSpecies,
@@ -20,6 +21,12 @@ import {
 import { evaluateOutfallPlacement } from './components/placement';
 import { PRESET_SITES, type PresetSite } from './model/presets';
 import { plumeRings, type PlumeRing } from './model/plume';
+import {
+  cumulativeResult,
+  type CumulativeResult,
+  type CumulativeSite,
+} from './model/cumulative';
+import { samplePoints } from './model/grid';
 import { runSite } from './model/runSite';
 import { NEGLIGIBLE_C } from './model/constants';
 import {
@@ -31,7 +38,7 @@ import {
 } from './model/types';
 import { useSnapshots } from './data/useSnapshots';
 import type { SourceMetas } from './data/useSnapshots';
-import type { SpeciesEntry } from './data/types';
+import type { SpeciesEntry, Station } from './data/types';
 import type { FeatureCollection } from 'geojson';
 import type { LatLon } from './model/grid';
 
@@ -102,6 +109,22 @@ export function App() {
   const [savedSites, setSavedSites] = useState<SavedSite[]>([]);
   const [nextCustomSite, setNextCustomSite] = useState(1);
 
+  // Cumulative mode (R8, stretch): when on, sum every saved site's screening
+  // plume at each point on one shared grid and recompute areas/species. Off by
+  // default so single-site behavior is unchanged.
+  const [cumulativeMode, setCumulativeMode] = useState(false);
+
+  // River-mouth flag (R9, stretch): when on, show the diadromous fish stations
+  // on the map and flag, per saved site, any station within the site's plume
+  // reach in the comparison table. Off by default so base behavior is
+  // unchanged.
+  const [riverMouthFlag, setRiverMouthFlag] = useState(false);
+
+  // Diadromous fish stations from the committed snapshot (R9). Empty when the
+  // file is absent/invalid (loadDiadromous degrades to []).
+  const stations: Station[] =
+    snapshots.status === 'ready' ? snapshots.stations : [];
+
   // Run the model whenever the outfall, params, baseline cells, or land change
   // (R4.4). Memoized so dragging a slider doesn't recompute until a dependency
   // actually changes. Returns { result, rings } with a friendly error message
@@ -153,6 +176,33 @@ export function App() {
       speciesName: selectedSpecies.name,
     };
   }, [result, selectedSpecies]);
+
+  // Cumulative-mode result (R8, stretch). DESIGN DECISION — shared grid:
+  // sumImpacts needs an index-aligned grid, but saved sites have different
+  // outfalls (different native grids). The correct superposition is over ONE
+  // shared grid: we build samplePoints() centered on the FOCUSED outfall (or,
+  // if none is placed, the first saved site's outfall), then cumulativeImpacts
+  // evaluates each saved site's excess AT every shared point (distance from
+  // that site's own outfall) and sums — never misusing sumImpacts on misaligned
+  // native grids. Area/coverage/species reuse the single-site risk functions so
+  // the numbers stay consistent. Only recomputed while the toggle is on, since
+  // the shared grid is the heavy part (design.md "Performance").
+  const cumulative = useMemo<CumulativeResult | null>(() => {
+    if (!cumulativeMode || savedSites.length === 0) return null;
+
+    const gridCenter = outfall ?? {
+      lat: savedSites[0].result.inputs.lat,
+      lon: savedSites[0].result.inputs.lon,
+    };
+    const sharedGrid = samplePoints(gridCenter, cells, land);
+
+    const sites: CumulativeSite[] = savedSites.map((s) => ({
+      outfall: { lat: s.result.inputs.lat, lon: s.result.inputs.lon },
+      thermal: s.result.thermal,
+    }));
+
+    return cumulativeResult(sites, sharedGrid, modelSpecies);
+  }, [cumulativeMode, savedSites, outfall, cells, land, modelSpecies]);
 
   // Preset buttons set both location and facility params in one click (R3.1).
   const handleSelectPreset = useCallback((preset: PresetSite) => {
@@ -288,6 +338,7 @@ export function App() {
                   onMapClick={handleMapClick}
                   rings={rings}
                   exceedance={exceedance}
+                  stations={riverMouthFlag ? stations : null}
                 />
               </div>
               <div
@@ -375,7 +426,79 @@ export function App() {
                 sites={savedSites}
                 species={shownSpecies}
                 onRemove={handleRemoveSite}
+                stations={stations}
+                showRiverMouthFlag={riverMouthFlag}
               />
+            </div>
+
+            {/* Cumulative mode (R8, stretch): toggle + superposed results. */}
+            <div style={{ marginTop: '1rem' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.6rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  color: savedSites.length === 0 ? '#90a4ae' : '#0b3d5c',
+                  cursor: savedSites.length === 0 ? 'not-allowed' : 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={cumulativeMode}
+                  disabled={savedSites.length === 0}
+                  onChange={(e) => setCumulativeMode(e.target.checked)}
+                />
+                Cumulative mode (sum all saved sites)
+              </label>
+              {cumulativeMode && (
+                <CumulativePanel
+                  result={cumulative}
+                  species={shownSpecies}
+                  savedCount={savedSites.length}
+                />
+              )}
+            </div>
+
+            {/* River-mouth flag (R9, stretch): toggle the diadromous station
+                overlay + per-site reach flag in the comparison table. */}
+            <div style={{ marginTop: '1rem' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.4rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  color: stations.length === 0 ? '#90a4ae' : '#0b3d5c',
+                  cursor: stations.length === 0 ? 'not-allowed' : 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={riverMouthFlag}
+                  disabled={stations.length === 0}
+                  onChange={(e) => setRiverMouthFlag(e.target.checked)}
+                />
+                River-mouth flag (diadromous fish stations)
+              </label>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '0.72rem',
+                  color: '#78909c',
+                  lineHeight: 1.5,
+                }}
+              >
+                {stations.length === 0
+                  ? 'No diadromous station data loaded.'
+                  : riverMouthFlag
+                    ? `Showing ${stations.length} MassGIS/DMF diadromous fish sampling stations (MEASURED). The comparison table flags any station within each saved site's plume reach.`
+                    : `Enable to overlay ${stations.length} MassGIS/DMF diadromous fish stations and flag those within each saved site's plume reach.`}
+              </p>
             </div>
           </>
         )}

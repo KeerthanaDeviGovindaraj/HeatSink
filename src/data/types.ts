@@ -33,6 +33,29 @@ export interface SpeciesFile {
 }
 
 /**
+ * One diadromous fish sampling station (stretch R9), from MassGIS/DMF.
+ * `lat`/`lon` are WGS84 degrees; `id` is stable for list keys and dedupe.
+ */
+export interface Station {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  /** Source river name (optional context). */
+  river?: string;
+  /** Town (optional context). */
+  town?: string;
+  /** Sampling station type (River Herring / Smelt fyke net / ...) (optional). */
+  stationType?: string;
+}
+
+/** Shape of the committed public/data/diadromous.json file (stretch R9). */
+export interface DiadromousFile {
+  metadata?: Record<string, unknown>;
+  stations: Station[];
+}
+
+/**
  * One validated ocean observation row (FIShBOT / eMOLT / NDBC).
  * All numeric fields are already normalized: missing values are null, never 0.
  */

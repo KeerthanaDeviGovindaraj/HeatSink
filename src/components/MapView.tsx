@@ -22,7 +22,7 @@ import {
 import 'leaflet/dist/leaflet.css';
 import type { LatLon } from '../model/grid';
 import type { PlumeRing } from '../model/plume';
-import type { OceanRow } from '../data/types';
+import type { OceanRow, Station } from '../data/types';
 import type { PointImpact } from '../model/types';
 import { classifyPoint } from './exceedance';
 import {
@@ -64,6 +64,14 @@ const RING_COLOR = '#e65100';
 const NEWLY_COLOR = '#d01c8b'; // solid magenta — the discharge pushes past T*
 const ALREADY_COLOR = '#018571'; // outlined teal — warm before the plume
 
+/**
+ * Diadromous fish station marker color (stretch R9). A distinct dark-indigo
+ * diamond-ish square marker (via a squared CircleMarker) separates the MEASURED
+ * station layer from the blue→red baseline cells, orange plume rings and the
+ * magenta/teal exceedance overlay.
+ */
+const STATION_COLOR = '#3949ab';
+
 /** Fill opacity for a ring, hotter (inner) rings more opaque. Index 0 = hottest. */
 function ringFillOpacity(index: number, total: number): number {
   // 0.28 for the innermost ring down to ~0.06 for the outermost.
@@ -97,6 +105,13 @@ export interface MapViewProps {
   exceedance?:
     | { points: PointImpact[]; thresholdC: number; speciesName?: string | undefined }
     | null;
+  /**
+   * Diadromous fish sampling stations to overlay (stretch R9). When provided
+   * (the river-mouth flag is on), each station is drawn as a distinct MEASURED
+   * marker with its name in a tooltip. Null/omitted/empty draws nothing;
+   * MapView stays presentational.
+   */
+  stations?: readonly Station[] | null;
 }
 
 /**
@@ -119,6 +134,7 @@ export function MapView({
   onMapClick,
   rings,
   exceedance,
+  stations,
 }: MapViewProps) {
   // Draw rings largest-first so the hotter, smaller rings render on top. Sort a
   // copy to avoid mutating the caller's array. `order` gives each ring its
@@ -264,6 +280,34 @@ export function MapView({
             </CircleMarker>
           );
         })}
+        {/* Diadromous fish stations (stretch R9): distinct MEASURED markers. */}
+        {stations?.map((s) => (
+          <CircleMarker
+            key={`station-${s.id}`}
+            center={[s.lat, s.lon]}
+            radius={6}
+            pathOptions={{
+              color: '#1a237e',
+              weight: 1.5,
+              fillColor: STATION_COLOR,
+              fillOpacity: 0.95,
+            }}
+          >
+            <Tooltip>
+              <div style={{ lineHeight: 1.4 }}>
+                <strong>Diadromous fish station (MEASURED)</strong>
+                <br />
+                {s.name}
+                {s.stationType && (
+                  <>
+                    <br />
+                    {s.stationType}
+                  </>
+                )}
+              </div>
+            </Tooltip>
+          </CircleMarker>
+        ))}
       </MapContainer>
       <Legend label={BASELINE_LABEL} />
       {outfall && sortedRings.length > 0 && <RingLegend rings={sortedRings} />}
@@ -273,6 +317,52 @@ export function MapView({
           thresholdC={exceedance.thresholdC}
         />
       )}
+      {stations && stations.length > 0 && (
+        <StationLegend count={stations.length} />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Legend swatch for the diadromous fish station overlay (stretch R9).
+ * Positioned bottom-left so it clears the color legend (bottom-right), the ring
+ * legend (top-right) and the exceedance legend (top-left).
+ */
+function StationLegend({ count }: { count: number }) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 12,
+        left: 12,
+        zIndex: 1000,
+        background: 'rgba(255,255,255,0.95)',
+        padding: '0.5rem 0.6rem',
+        borderRadius: 6,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+        font: '12px/1.4 system-ui, sans-serif',
+        maxWidth: 210,
+      }}
+    >
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>
+        Diadromous fish stations{' '}
+        <span style={{ color: '#607d8b', fontWeight: 600 }}>· MEASURED</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span
+          style={{
+            display: 'inline-block',
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            background: STATION_COLOR,
+            border: '1.5px solid #1a237e',
+            flex: '0 0 auto',
+          }}
+        />
+        <span>{count} MassGIS/DMF station{count === 1 ? '' : 's'}</span>
+      </div>
     </div>
   );
 }
