@@ -3,16 +3,17 @@
  *
  * Renders the committed snapshot's point centroids as CircleMarkers colored by a
  * colorblind-safe ramp, with a °C/°F legend, distinct no-data styling, and a
- * per-cell tooltip (R1.1, R1.2, R1.4, R1.5). The baseline layer is labeled
- * "MEASURED (gridded daily average)" (R1.3 groundwork).
+ * per-cell tooltip (R1.1, R1.2, R1.4, R1.5). The baseline layer is labeled with
+ * the shared FIShBOT layer label "MEASURED (gridded daily average)" (R1.3).
  *
- * Plume overlay, click-to-place, and the full error card arrive in later tasks.
+ * MapView is now presentational: App (via useSnapshots) owns loading so the
+ * baseline and the Footer meta share one fetch, and a load failure renders the
+ * shared ErrorCard instead of a blank map (R1.7). Plume overlay and
+ * click-to-place arrive in later tasks.
  */
-import { useEffect, useState } from 'react';
 import { CircleMarker, MapContainer, TileLayer, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { loadFishbot } from '../data/loaders';
-import type { OceanRow, SnapshotMeta } from '../data/types';
+import type { OceanRow } from '../data/types';
 import {
   NO_DATA_COLOR,
   colorForTemp,
@@ -21,6 +22,7 @@ import {
   isNoData,
   legendStops,
 } from './colorScale';
+import { layerLabel } from './layerLabels';
 
 // MA coast view: data spans lat 41.2–43.0, lon -71.2 to -69.8 (R1.1).
 const MAP_CENTER: [number, number] = [42.1, -70.5];
@@ -28,58 +30,16 @@ const MAP_ZOOM = 8;
 const OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{x}/{y}/{z}.png';
 const OSM_ATTRIBUTION = '&copy; OpenStreetMap contributors';
 
-const BASELINE_LABEL = 'MEASURED (gridded daily average)';
+const BASELINE_LABEL = layerLabel('fishbot');
 
-type LoadState =
-  | { status: 'loading' }
-  | { status: 'error'; message: string }
-  | { status: 'ready'; rows: OceanRow[]; meta: SnapshotMeta };
+export interface MapViewProps {
+  /** Baseline FIShBOT rows to plot. */
+  rows: OceanRow[];
+  /** Date window label for the baseline snapshot, shown in each tooltip. */
+  window: string;
+}
 
-export function MapView() {
-  const [state, setState] = useState<LoadState>({ status: 'loading' });
-
-  useEffect(() => {
-    let active = true;
-    loadFishbot()
-      .then((snapshot) => {
-        if (active) {
-          setState({ status: 'ready', rows: snapshot.rows, meta: snapshot.meta });
-        }
-      })
-      .catch((err: unknown) => {
-        if (active) {
-          const message = err instanceof Error ? err.message : 'Unknown error';
-          setState({ status: 'error', message });
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  if (state.status === 'loading') {
-    return (
-      <div data-testid="map-view" style={{ padding: '1rem' }}>
-        Loading baseline map…
-      </div>
-    );
-  }
-
-  // Minimal fallback here; the full error card is task 5.3 (R1.7).
-  if (state.status === 'error') {
-    return (
-      <div
-        data-testid="map-view"
-        role="alert"
-        style={{ padding: '1rem', border: '1px solid #c0392b', borderRadius: 6, color: '#c0392b' }}
-      >
-        Could not load the baseline snapshot ({state.message}). The map is unavailable.
-      </div>
-    );
-  }
-
-  const { rows, meta } = state;
-
+export function MapView({ rows, window }: MapViewProps) {
   return (
     <div data-testid="map-view" style={{ position: 'relative' }}>
       <MapContainer
@@ -112,7 +72,7 @@ export function MapView() {
                   <br />
                   Depth: {formatOptional(row.depthM, ' m')}
                   <br />
-                  Window: {meta.window}
+                  Window: {window}
                 </div>
               </Tooltip>
             </CircleMarker>

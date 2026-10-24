@@ -48,11 +48,36 @@ export async function loadSpecies(): Promise<SpeciesFile> {
 }
 
 /**
+ * Fetch and parse one committed ocean snapshot file from /public/data.
+ * Returns the full {@link Snapshot} so the caller has the meta block
+ * (source, url, fetchedAt, window) for the Footer (R1.6).
+ */
+async function loadSnapshot(file: string): Promise<Snapshot<OceanRow>> {
+  const res = await fetch(`${DATA_BASE}/${file}`);
+  if (!res.ok) throw new Error(`Failed to load ${file}: ${res.status}`);
+  return (await res.json()) as Snapshot<OceanRow>;
+}
+
+/**
  * Fetch and parse the committed FIShBOT baseline snapshot (R1.1).
  * Returns the full Snapshot so the caller has the meta block (window, fetchedAt).
  */
-export async function loadFishbot(): Promise<Snapshot<OceanRow>> {
-  const res = await fetch(`${DATA_BASE}/fishbot.json`);
-  if (!res.ok) throw new Error(`Failed to load fishbot.json: ${res.status}`);
-  return (await res.json()) as Snapshot<OceanRow>;
+export function loadFishbot(): Promise<Snapshot<OceanRow>> {
+  return loadSnapshot('fishbot.json');
+}
+
+/**
+ * Fetch and parse the committed eMOLT snapshot. Returns the full Snapshot so the
+ * Footer can show the source and `fetchedAt` (R1.6).
+ */
+export function loadEmolt(): Promise<Snapshot<OceanRow>> {
+  return loadSnapshot('emolt.json');
+}
+
+/**
+ * Fetch and parse the committed NDBC buoy snapshot. Returns the full Snapshot so
+ * the Footer can show the source and `fetchedAt` (R1.6).
+ */
+export function loadNdbc(): Promise<Snapshot<OceanRow>> {
+  return loadSnapshot('ndbc.json');
 }
