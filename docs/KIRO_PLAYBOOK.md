@@ -51,6 +51,7 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 15:18 | Install GitHub CLI to enable Pages | other | brew installed gh 2.103.2; Pages enable blocked on gh auth login (interactive admin step), command staged |
 | 15:24 | Enable Pages + deploy live site (gh CLI) | other | gh auth confirmed admin; re-ran deploy.yml (build+deploy green); live at https://keerthanadevigovindaraj.github.io/HeatSink/ (200, correct base); phone check still manual |
 | 15:29 | Fix live Pages data 404 (loaders BASE_URL) | spec task | PR #12: DATA_BASE now uses import.meta.env.BASE_URL so data serves at /HeatSink/data/*; merged, redeployed green, live map loads (200), 150 tests pass |
+| 15:31 | Commit + push tracker/playbook progress | spec task | Pushed 920d05f to keerthana (tasks.md, tasks.meta.json, playbook); excluded mcp.json (leaked PAT) |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:
