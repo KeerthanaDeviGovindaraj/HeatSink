@@ -40,6 +40,23 @@ export const MIN_COVERAGE = 0.5;
 /** Default fraction of facility power dissipated to the cooling medium. */
 export const DEFAULT_HEAT_FRACTION = 0.88;
 
+/**
+ * Reference scale for the "Brayton Point" comparison line (MGD).
+ *
+ * Brayton Point Station (Somerset, MA) was New England's largest fossil plant
+ * and, at peak, the region's largest once-through seawater cooling withdrawal —
+ * historically on the order of ~1 billion US gallons per day. Since
+ * 1 billion gal/day = 1000 MGD, we use 1000 MGD as the upper anchor of the
+ * flow-scale bar so users can see a facility's required cooling flow relative to
+ * a real-world maximum (R3.5). This is an order-of-magnitude reference, not a
+ * precise operating figure.
+ *
+ * Source: U.S. EPA, Brayton Point Station NPDES permit / fact sheet
+ * (once-through cooling-water withdrawal ~1 billion gal/day). See
+ * https://www.epa.gov/npdes-permits/brayton-point-station-npdes-permit
+ */
+export const BRAYTON_PEAK_MGD = 1000;
+
 /** Plume decay-length calibration (ASSUMPTION, placeholder). */
 export const LREF_M = 1500;
 export const QREF_M3S = 4.4;
