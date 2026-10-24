@@ -38,7 +38,7 @@ import { layerLabel } from './layerLabels';
 // MA coast view: data spans lat 41.2–43.0, lon -71.2 to -69.8 (R1.1).
 const MAP_CENTER: [number, number] = [42.1, -70.5];
 const MAP_ZOOM = 8;
-const OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{x}/{y}/{z}.png';
+const OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const OSM_ATTRIBUTION = '&copy; OpenStreetMap contributors';
 
 const BASELINE_LABEL = layerLabel('fishbot');
