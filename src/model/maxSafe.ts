@@ -29,8 +29,8 @@ import {
 } from './types';
 
 /** Integer facility-size search bounds (MW), single-sourced from BOUNDS. */
-const MIN_MW = BOUNDS.facilityMW.min;
-const MAX_MW = BOUNDS.facilityMW.max;
+const MIN_MW: number = BOUNDS.facilityMW.min;
+const MAX_MW: number = BOUNDS.facilityMW.max;
 
 /** Result of the largest-safe-size search (design.md model table). */
 export interface MaxSafeResult {
