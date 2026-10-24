@@ -1,6 +1,6 @@
 # HeatSink 🌊
 
-**Smart siting for seawater-cooled AI data centers.** HeatSink shows where a seawater-cooled AI data center on the Massachusetts coast would push coastal habitat past species temperature limits — and where it would not — so you can find the least-harmful site *before* it's built.
+**Smart siting for seawater-cooled AI data centers: find where a data center's heat does the least harm to the ocean, before it's built.**
 
 > ⚠️ **Screening tool only.** HeatSink is not a hydrodynamic model or a permit decision. It helps answer "which sites deserve a closer look?"
 
@@ -44,7 +44,24 @@ But seawater cooling returns the heat to the ocean, typically several degrees wa
 
 ## Screenshots
 
-TODO: add 3–5 images from `docs/screens/` (map, plume, species overlay, compare table, summary).
+![Insights strip and flow card](docs/screens/insights-strip.png)
+*At-a-glance verdict strip (risk level, newly-exceeded habitat, plume reach, cooling flow vs. Brayton Point, data coverage) above the map and the required-flow card.*
+
+![Screening plume on the Massachusetts coast](docs/screens/map-framed.png)
+*The map framed on Cape Cod / Massachusetts Bay, showing the outfall, labeled plume rings, and baseline temperature cells.*
+
+![Species overlay and selected preset](docs/screens/preset-selected.png)
+*A preset site selected (highlighted) with the species threshold overlay and the "Selected: …" indicator in the facility panel.*
+
+<details>
+<summary>More screenshots</summary>
+
+![Baseline map with true-size cells](docs/screens/squares-default-preset.png)
+*Overview on load: baseline FIShBOT cells drawn as true-size ~7 km squares, default preset selected.*
+
+</details>
+
+> Note: screenshots are captured with the Playwright MCP from the live app; filenames reflect the shots currently in `docs/screens/`.
 
 ## Run locally
 
