@@ -1,4 +1,4 @@
-# Requirements: HeatSink (v2.1)
+# Requirements: HeatSink (v2.2)
 
 ## Introduction
 HeatSink answers one question: "If an AI data center on the Massachusetts coast used seawater cooling, where would its waste heat do the least ecological harm?" It combines fishing-fleet bottom-temperature data (FIShBOT, eMOLT) and NOAA buoy context with a transparent screening heat model (steering: `thermal-model.md` v2.1). It is a SCREENING tool, not a hydrodynamic model or a permit decision, and must say so wherever results appear.
@@ -100,6 +100,38 @@ Each criterion maps to a property (P#) in `thermal-model.md` v2.1 and to a fast-
 17. FOR ANY validator input, THE SYSTEM SHALL keep rows inside bounds, drop rows outside bounds, and return rowCount + droppedCount equal to the input count. (tests/data)
 18. THE SYSTEM SHALL pass the unit test: 90 MW at ΔT 5 °C ≈ 4.40 m³/s ≈ 100 MGD.
 19. WHEN inputs are out of range THE SYSTEM SHALL throw InputRangeError; WHEN the outfall is on land THE SYSTEM SHALL throw OutfallOnLandError.
+20. FOR ANY site and settings, IF maxSafeMW returns n THEN every selected species SHALL score < 10 at n, AND (n SHALL equal 500 OR some selected species SHALL score ≥ 10 at n + 1). (P17)
+21. FOR ANY site and settings, maxSafeMW SHALL return null if and only if some selected species scores ≥ 10 at 1 MW, AND the result SHALL NOT depend on the facilityMW value passed in. (P18)
+22. FOR ANY valid app state, decoding the encoded share URL SHALL return the same state (sites, sliders, species, cumulative flag), equal within display rounding. (P19, tests/data)
+23. FOR ANY share URL, out-of-range or malformed values SHALL be replaced by defaults or clamped into bounds, and decoding SHALL never throw. (P20, tests/data)
+
+## Requirement 11: Largest safe size
+**User story:** As a town board member, I want to know the largest data center a site can host while staying at Low impact, so that I get a planning answer, not just a risk score.
+
+1. WHEN a site is selected THE SYSTEM SHALL show "Largest size at Low impact: N MW" for the current temperature rise, mixing ratio, heat fraction, and selected species.
+2. IF even 1 MW is not Low impact THEN THE SYSTEM SHALL show "No size is Low impact at this site".
+3. IF the result is 500 MW THEN THE SYSTEM SHALL show "500+ MW (upper bound of the tool)".
+4. IF coverage at the result is below MIN_COVERAGE THEN THE SYSTEM SHALL show "Insufficient data" instead of a size.
+5. THE SYSTEM SHALL show the largest safe size for each site in the comparison table.
+6. WHEN the user clicks "Use this size" THE SYSTEM SHALL set the facility size slider to the result.
+7. WHEN any non-MW control changes THE SYSTEM SHALL update the result within 1 second.
+
+## Requirement 12: Shareable scenario link
+**User story:** As a planner, I want to send a colleague a link that opens exactly what I'm looking at.
+
+1. THE SYSTEM SHALL encode the current state (saved sites with inputs, active site, selected species, cumulative flag) in the URL query string.
+2. WHEN the user clicks "Copy link" THE SYSTEM SHALL copy the URL and confirm with "Link copied".
+3. WHEN the app loads with state in the URL THE SYSTEM SHALL restore it before first render of results.
+4. IF a URL value is missing, malformed, or out of range THEN THE SYSTEM SHALL use the default or clamp it into bounds and show a short notice, never an error page.
+5. THE SYSTEM SHALL keep URLs under 2,000 characters for up to 4 sites.
+
+## Requirement 13: Printable town board brief
+**User story:** As a town board member, I want a clean one-page printout to bring to a meeting.
+
+1. WHEN the user clicks "Print brief" or prints the page THE SYSTEM SHALL print one page with: title, date, site location, inputs, flow (m³/s and MGD), plume area and reach, species results, largest safe size, coverage, assumptions, data sources, the share link, and the screening disclaimer.
+2. THE SYSTEM SHALL hide interactive controls in the printed output.
+3. THE SYSTEM SHALL include a map snapshot with the plume, or a clear "map not included" note.
+4. THE SYSTEM SHALL print legibly in black and white (risk levels as text, not color alone).
 
 ## Non-functional
 - Static SPA; works at phone width; demo path offline except map tiles.
