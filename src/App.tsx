@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { AssumptionsBanner } from './components/AssumptionsBanner';
 import { ErrorCard } from './components/ErrorCard';
 import { Footer } from './components/Footer';
 import { MapView } from './components/MapView';
+import { PlumePanel } from './components/PlumePanel';
 import {
   DEFAULT_SITE_PARAMS,
   SiteEditor,
@@ -10,10 +11,26 @@ import {
 } from './components/SiteEditor';
 import { evaluateOutfallPlacement } from './components/placement';
 import type { PresetSite } from './model/presets';
+import { plumeRings, type PlumeRing } from './model/plume';
+import { runSite } from './model/runSite';
+import { NEGLIGIBLE_C } from './model/constants';
+import {
+  InputRangeError,
+  OutfallOnLandError,
+  type BaselineCell,
+  type SiteResult,
+} from './model/types';
 import { useSnapshots } from './data/useSnapshots';
 import type { SourceMetas } from './data/useSnapshots';
 import type { FeatureCollection } from 'geojson';
 import type { LatLon } from './model/grid';
+
+/**
+ * Labeled excess levels (°C) for the plume rings (R4.4). Only levels the plume
+ * actually reaches are drawn (plumeRings filters radius 0); NEGLIGIBLE_C is the
+ * outermost ring and coincides with the thermal reach.
+ */
+const RING_LEVELS_C = [2, 1, 0.5, NEGLIGIBLE_C] as const;
 
 /**
  * App shell. Loads the committed snapshots once (useSnapshots) and shares them:
@@ -28,6 +45,7 @@ export function App() {
   const metas: SourceMetas = snapshots.status === 'ready' ? snapshots.metas : {};
   const land: FeatureCollection | null =
     snapshots.status === 'ready' ? snapshots.land : null;
+  const cells: BaselineCell[] = snapshots.status === 'ready' ? snapshots.cells : [];
 
   // Click-to-place state (R3.2): the current outfall and a transient land notice.
   const [outfall, setOutfall] = useState<LatLon | null>(null);
@@ -35,8 +53,45 @@ export function App() {
 
   // Facility parameters (R3.3 defaults), driven by the SiteEditor sliders. App
   // owns them so the full SiteInputs = outfall + params can be composed for
-  // runSite in later tasks.
+  // runSite.
   const [siteParams, setSiteParams] = useState<SiteParams>(DEFAULT_SITE_PARAMS);
+
+  // Run the model whenever the outfall, params, baseline cells, or land change
+  // (R4.4). Memoized so dragging a slider doesn't recompute until a dependency
+  // actually changes. Returns { result, rings } with a friendly error message
+  // when the model throws (shouldn't happen: outfall is water-validated in 6.1
+  // and params are bounded by the sliders, but guard defensively — R3.2).
+  const { result, rings, resultError } = useMemo((): {
+    result: SiteResult | null;
+    rings: PlumeRing[];
+    resultError: string | null;
+  } => {
+    if (!outfall) return { result: null, rings: [], resultError: null };
+    try {
+      const run = runSite({ ...outfall, ...siteParams }, cells, [], land);
+      return {
+        result: run,
+        rings: plumeRings(run.thermal, RING_LEVELS_C),
+        resultError: null,
+      };
+    } catch (err) {
+      if (err instanceof OutfallOnLandError) {
+        return {
+          result: null,
+          rings: [],
+          resultError: 'That outfall is on land — place it in water.',
+        };
+      }
+      if (err instanceof InputRangeError) {
+        return {
+          result: null,
+          rings: [],
+          resultError: 'Facility settings are out of range — adjust the sliders.',
+        };
+      }
+      throw err;
+    }
+  }, [outfall, siteParams, cells, land]);
 
   // Preset buttons set both location and facility params in one click (R3.1).
   const handleSelectPreset = useCallback((preset: PresetSite) => {
@@ -133,15 +188,40 @@ export function App() {
                   window={snapshots.metas.fishbot?.window ?? ''}
                   outfall={outfall}
                   onMapClick={handleMapClick}
+                  rings={rings}
                 />
               </div>
-              <div style={{ flex: '1 1 16rem', minWidth: '15rem' }}>
+              <div
+                style={{
+                  flex: '1 1 16rem',
+                  minWidth: '15rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem',
+                }}
+              >
                 <SiteEditor
                   params={siteParams}
                   onChange={setSiteParams}
                   outfall={outfall}
                   onSelectPreset={handleSelectPreset}
                 />
+                {resultError && (
+                  <div
+                    role="alert"
+                    style={{
+                      padding: '0.6rem 0.8rem',
+                      background: '#fdecea',
+                      border: '1px solid #e0b4b0',
+                      borderRadius: 6,
+                      color: '#611a15',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    {resultError}
+                  </div>
+                )}
+                {result && <PlumePanel result={result} />}
               </div>
             </div>
           </>

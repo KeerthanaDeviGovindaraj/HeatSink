@@ -12,6 +12,7 @@
  * click-to-place arrive in later tasks.
  */
 import {
+  Circle,
   CircleMarker,
   MapContainer,
   TileLayer,
@@ -20,6 +21,7 @@ import {
 } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { LatLon } from '../model/grid';
+import type { PlumeRing } from '../model/plume';
 import type { OceanRow } from '../data/types';
 import {
   NO_DATA_COLOR,
@@ -42,6 +44,21 @@ const BASELINE_LABEL = layerLabel('fishbot');
 /** Outfall marker color (MODELED placement, distinct from baseline cells). */
 const OUTFALL_COLOR = '#d81b60';
 
+/**
+ * Plume-ring stroke color (translucent orange/red). The same hue is used for
+ * every ring; inner (hotter) rings get a higher fill opacity so the concentric
+ * bands read as a heat gradient, distinct from the blue→red baseline cells.
+ */
+const RING_COLOR = '#e65100';
+
+/** Fill opacity for a ring, hotter (inner) rings more opaque. Index 0 = hottest. */
+function ringFillOpacity(index: number, total: number): number {
+  // 0.28 for the innermost ring down to ~0.06 for the outermost.
+  if (total <= 1) return 0.18;
+  const t = index / (total - 1);
+  return 0.28 - t * 0.22;
+}
+
 export interface MapViewProps {
   /** Baseline FIShBOT rows to plot. */
   rows: OceanRow[];
@@ -51,6 +68,12 @@ export interface MapViewProps {
   outfall?: LatLon | null;
   /** Called with the clicked location on every map click (R3.2). */
   onMapClick?: (latlng: LatLon) => void;
+  /**
+   * Labeled plume rings to draw around the outfall, outer→inner or inner→outer
+   * (any order; drawn largest-first so smaller rings sit on top). Empty or
+   * omitted draws no rings (R4.4).
+   */
+  rings?: readonly PlumeRing[];
 }
 
 /**
@@ -66,7 +89,12 @@ function ClickCapture({ onClick }: { onClick?: ((latlng: LatLon) => void) | unde
   return null;
 }
 
-export function MapView({ rows, window, outfall, onMapClick }: MapViewProps) {
+export function MapView({ rows, window, outfall, onMapClick, rings }: MapViewProps) {
+  // Draw rings largest-first so the hotter, smaller rings render on top. Sort a
+  // copy to avoid mutating the caller's array. `order` gives each ring its
+  // hot→cold index for fill opacity (0 = hottest/smallest radius).
+  const sortedRings = rings ? [...rings].sort((a, b) => b.radiusM - a.radiusM) : [];
+
   return (
     <div data-testid="map-view" style={{ position: 'relative' }}>
       <MapContainer
@@ -77,6 +105,32 @@ export function MapView({ rows, window, outfall, onMapClick }: MapViewProps) {
       >
         <TileLayer url={OSM_TILE_URL} attribution={OSM_ATTRIBUTION} />
         <ClickCapture onClick={onMapClick} />
+        {outfall &&
+          sortedRings.map((ring, i) => {
+            // Opacity index counts from the hottest (smallest) ring, which is
+            // last after the largest-first sort.
+            const hotIndex = sortedRings.length - 1 - i;
+            return (
+              <Circle
+                key={`ring-${ring.excessC}`}
+                center={[outfall.lat, outfall.lon]}
+                radius={ring.radiusM}
+                pathOptions={{
+                  color: RING_COLOR,
+                  weight: 1.5,
+                  opacity: 0.8,
+                  fillColor: RING_COLOR,
+                  fillOpacity: ringFillOpacity(hotIndex, sortedRings.length),
+                }}
+              >
+                <Tooltip sticky>
+                  <strong>+{ring.excessC} °C (MODELED)</strong>
+                  <br />
+                  radius ≈ {(ring.radiusM / 1000).toFixed(1)} km
+                </Tooltip>
+              </Circle>
+            );
+          })}
         {outfall && (
           <CircleMarker
             center={[outfall.lat, outfall.lon]}
@@ -126,6 +180,58 @@ export function MapView({ rows, window, outfall, onMapClick }: MapViewProps) {
         })}
       </MapContainer>
       <Legend label={BASELINE_LABEL} />
+      {outfall && sortedRings.length > 0 && <RingLegend rings={sortedRings} />}
+    </div>
+  );
+}
+
+/**
+ * Legend for the plume rings (R4.4): one swatch per labeled excess level with
+ * the MODELED tag and the shallow-water caveat. Positioned top-right so it does
+ * not overlap the baseline color legend (bottom-right).
+ */
+function RingLegend({ rings }: { rings: PlumeRing[] }) {
+  // Show hottest level first (smallest radius): reverse the largest-first order.
+  const ordered = [...rings].sort((a, b) => b.excessC - a.excessC);
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        zIndex: 1000,
+        background: 'rgba(255,255,255,0.95)',
+        padding: '0.5rem 0.6rem',
+        borderRadius: 6,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+        font: '12px/1.4 system-ui, sans-serif',
+        maxWidth: 190,
+      }}
+    >
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>
+        Plume rings <span style={{ color: '#607d8b', fontWeight: 600 }}>· MODELED</span>
+      </div>
+      {ordered.map((ring, i) => (
+        <div key={ring.excessC} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span
+            style={{
+              display: 'inline-block',
+              width: 14,
+              height: 14,
+              background: RING_COLOR,
+              opacity: ringFillOpacity(i, ordered.length) + 0.25,
+              border: `1px solid ${RING_COLOR}`,
+              flex: '0 0 auto',
+            }}
+          />
+          <span>
+            +{ring.excessC} °C ({(ring.radiusM / 1000).toFixed(1)} km)
+          </span>
+        </div>
+      ))}
+      <div style={{ marginTop: 4, color: '#78909c' }}>
+        Surface excess over ambient. Reaches the bottom only in water ≤ 20 m deep.
+      </div>
     </div>
   );
 }

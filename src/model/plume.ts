@@ -30,6 +30,88 @@ export function excessAt(rM: number, thermal: ThermalResult): number {
 }
 
 /**
+ * Radius (m) at which the screening plume's excess temperature falls to a given
+ * labeled level `excessC`. Inverse of {@link excessAt}:
+ *
+ *   excessAt(r) = deltaTEffC * exp(-r / decayLengthM) = excessC
+ *   ⇒ r = decayLengthM * ln(deltaTEffC / excessC)
+ *
+ * Returns 0 when the level is at or above the source strength (`excessC >=
+ * deltaTEffC`), i.e. no ring is drawn for a level the plume never reaches. Also
+ * returns 0 for a non-positive `excessC` (ill-posed; the plume is bounded).
+ * Monotonically non-increasing in `excessC`: a higher labeled level yields a
+ * smaller (or zero) radius. Pure.
+ *
+ * At `excessC === NEGLIGIBLE_C` this equals `thermal.reachM` (both invert the
+ * same decay), so the outermost ring coincides with the plume reach.
+ *
+ * @param thermal Thermal result providing `deltaTEffC` and `decayLengthM`.
+ * @param excessC Labeled excess level in °C to find the radius for.
+ * @returns Ring radius in meters (≥ 0).
+ */
+export function ringRadiusM(thermal: ThermalResult, excessC: number): number {
+  if (excessC <= 0) return 0;
+  if (excessC >= thermal.deltaTEffC) return 0;
+  return thermal.decayLengthM * Math.log(thermal.deltaTEffC / excessC);
+}
+
+/** A labeled plume ring: the excess level and the radius at which it occurs. */
+export interface PlumeRing {
+  excessC: number;
+  radiusM: number;
+}
+
+/**
+ * Build the set of drawable plume rings for a thermal result at the given
+ * labeled excess levels. Each level is mapped through {@link ringRadiusM}, and
+ * only levels with a positive radius (those the plume actually reaches) are
+ * kept. The result preserves input order. Pure.
+ *
+ * @param thermal Thermal result for the discharge.
+ * @param levelsC Labeled excess levels in °C (e.g. [2, 1, 0.5, NEGLIGIBLE_C]).
+ * @returns One {@link PlumeRing} per reachable level, in input order.
+ */
+export function plumeRings(
+  thermal: ThermalResult,
+  levelsC: readonly number[],
+): PlumeRing[] {
+  const rings: PlumeRing[] = [];
+  for (const excessC of levelsC) {
+    const radiusM = ringRadiusM(thermal, excessC);
+    if (radiusM > 0) rings.push({ excessC, radiusM });
+  }
+  return rings;
+}
+
+/**
+ * Summary counts over a set of point impacts for the results panel (R4.3,
+ * R4.4). `plumePointCount` counts points inside the plume (raw excess ≥
+ * NEGLIGIBLE_C); `deepSurfaceOnlyCount` counts plume points flagged
+ * "surface only" by the shallow-water rule; `unknownDepthCount` counts plume
+ * points with no known depth (depthM === null), surfaced as "depth unknown".
+ * Pure and deterministic.
+ *
+ * @param points Point impacts for the site (from {@link impacts}).
+ * @returns The summary counts.
+ */
+export function summarizePoints(points: PointImpact[]): {
+  plumePointCount: number;
+  deepSurfaceOnlyCount: number;
+  unknownDepthCount: number;
+} {
+  let plumePointCount = 0;
+  let deepSurfaceOnlyCount = 0;
+  let unknownDepthCount = 0;
+  for (const point of points) {
+    if (point.excessC < NEGLIGIBLE_C) continue;
+    plumePointCount++;
+    if (point.deepSurfaceOnly) deepSurfaceOnlyCount++;
+    if (point.depthM === null) unknownDepthCount++;
+  }
+  return { plumePointCount, deepSurfaceOnlyCount, unknownDepthCount };
+}
+
+/**
  * Apply the negligible-then-shallow rules to a raw excess at a point of a given
  * depth, yielding the bottom excess and the deep-surface-only flag.
  *

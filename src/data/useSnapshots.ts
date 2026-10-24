@@ -16,8 +16,15 @@
  */
 import { useEffect, useState } from 'react';
 import type { FeatureCollection } from 'geojson';
-import { loadEmolt, loadFishbot, loadLandMask, loadNdbc } from './loaders';
+import {
+  baselineCellsFromSnapshot,
+  loadEmolt,
+  loadFishbot,
+  loadLandMask,
+  loadNdbc,
+} from './loaders';
 import type { OceanRow, SnapshotMeta } from './types';
+import type { BaselineCell } from '../model/types';
 
 /** Snapshot meta blocks the Footer renders, keyed by source. */
 export interface SourceMetas {
@@ -32,6 +39,8 @@ export type SnapshotsState =
   | {
       status: 'ready';
       baseline: OceanRow[];
+      /** Baseline adapted to model cells for runSite (R4.1, R4.4). */
+      cells: BaselineCell[];
       metas: SourceMetas;
       /** MA land polygons for the click-to-place land test; null if unavailable. */
       land: FeatureCollection | null;
@@ -63,6 +72,7 @@ export function useSnapshots(): SnapshotsState {
         setState({
           status: 'ready',
           baseline: fishbot.value.rows,
+          cells: baselineCellsFromSnapshot(fishbot.value),
           metas,
           land: land.status === 'fulfilled' ? land.value : null,
         });
