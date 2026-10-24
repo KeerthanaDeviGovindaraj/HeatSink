@@ -53,6 +53,14 @@ export function Footer({ metas }: FooterProps) {
           <SourceLine key={s.id} source={s} />
         ))}
       </ul>
+      {metas.fishbot?.window && (
+        <p style={{ margin: '0.5rem 0 0', fontWeight: 600, color: '#37474f' }}>
+          Baseline window: {metas.fishbot.window}{' '}
+          <span style={{ fontWeight: 400, color: '#607079' }}>
+            (FIShBOT gridded daily averages; one-week sample, no trend implied)
+          </span>
+        </p>
+      )}
       <p style={{ margin: '0.6rem 0 0' }}>
         Also: MassGIS land mask. Layers labeled MEASURED or MODELED. Missing values
         shown as gaps, never zero. Screening tool, not a permit decision.

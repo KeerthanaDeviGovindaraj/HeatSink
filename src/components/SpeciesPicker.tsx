@@ -15,7 +15,9 @@
  * R5.4 is about a SELECTED species, so selection is single-choice (radios);
  * `selectedId === null` means no overlay.
  */
+import { useState } from 'react';
 import type { SpeciesEntry } from '../data/types';
+import type { SpeciesRisk, Level } from '../model/types';
 
 export interface SpeciesPickerProps {
   /** Displayable species (already filtered by isDisplayableSpecies). */
@@ -24,11 +26,31 @@ export interface SpeciesPickerProps {
   selectedId: string | null;
   /** Called with a species id to select it, or null to clear the overlay. */
   onSelect: (id: string | null) => void;
+  /**
+   * Per-species risk for the CURRENT site, keyed by species id, so each row
+   * can show its newly-exceeded area and level. Omit/empty when no site is
+   * placed yet (rows then show no figure).
+   */
+  risksById?: Map<string, SpeciesRisk>;
 }
 
 const RADIO_NAME = 'species-overlay';
 
-export function SpeciesPicker({ species, selectedId, onSelect }: SpeciesPickerProps) {
+/** Pull a short 'Author (Year)' citation out of a long source string. */
+function shortSource(source: string): string {
+  const m = source.match(/([A-Z][A-Za-z.'-]+(?:\s*(?:&|and|et al\.?)\s*[A-Z][A-Za-z.'-]+)*)\s*\((\d{4})\)/);
+  return m ? `${m[1].trim()} (${m[2]})` : source.split('.')[0];
+}
+
+const LEVEL_CHIP: Record<Level, { bg: string; fg: string }> = {
+  Low: { bg: '#e6f4ea', fg: '#1b5e20' },
+  Medium: { bg: '#fff4e5', fg: '#8a5300' },
+  High: { bg: '#fdecea', fg: '#8a1c13' },
+  'Insufficient data': { bg: '#eceff1', fg: '#455a64' },
+};
+
+export function SpeciesPicker({ species, selectedId, onSelect, risksById }: SpeciesPickerProps) {
+  const [detailsOpen, setDetailsOpen] = useState<Record<string, boolean>>({});
   return (
     <section
       data-testid="species-picker"
@@ -105,6 +127,37 @@ export function SpeciesPicker({ species, selectedId, onSelect }: SpeciesPickerPr
                           {s.thresholdC} °C
                         </span>
                         {!s.verified && <UnverifiedBadge />}
+                        {(() => {
+                          const risk = risksById?.get(s.id);
+                          if (!risk) return null;
+                          const chip = LEVEL_CHIP[risk.level];
+                          return (
+                            <span
+                              style={{
+                                marginLeft: 'auto',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                fontSize: '0.72rem',
+                              }}
+                            >
+                              <span style={{ color: '#607d8b', fontVariantNumeric: 'tabular-nums' }}>
+                                {risk.newlyExceededKm2.toFixed(2)} km² new
+                              </span>
+                              <span
+                                style={{
+                                  fontWeight: 700,
+                                  color: chip.fg,
+                                  background: chip.bg,
+                                  borderRadius: 999,
+                                  padding: '0.05rem 0.45rem',
+                                }}
+                              >
+                                {risk.level}
+                              </span>
+                            </span>
+                          );
+                        })()}
                       </span>
                       <span
                         style={{
@@ -115,7 +168,29 @@ export function SpeciesPicker({ species, selectedId, onSelect }: SpeciesPickerPr
                           lineHeight: 1.4,
                         }}
                       >
-                        <span style={{ fontWeight: 600 }}>Source:</span> {s.source}
+                        <span style={{ fontWeight: 600 }}>Source:</span> {shortSource(s.source)}{' '}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDetailsOpen((o) => ({ ...o, [s.id]: !o[s.id] }));
+                          }}
+                          aria-expanded={!!detailsOpen[s.id]}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#0b6aa2',
+                            cursor: 'pointer',
+                            fontSize: '0.72rem',
+                            textDecoration: 'underline',
+                            padding: 0,
+                          }}
+                        >
+                          {detailsOpen[s.id] ? 'hide' : 'details'}
+                        </button>
+                        {detailsOpen[s.id] && (
+                          <span style={{ display: 'block', marginTop: '0.3rem' }}>{s.source}</span>
+                        )}
                       </span>
                     </span>
                   </label>

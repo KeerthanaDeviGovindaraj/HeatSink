@@ -18,3 +18,19 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Sticky map column: keeps the map on screen while the right panel scrolls.
+   Disabled under 900px (stacked layout) so the map doesn't pin on mobile. */
+.map-sticky {
+  position: sticky;
+  top: 16px;
+  height: calc(100vh - 32px);
+}
+.map-sticky > * { height: 100%; }
+@media (max-width: 899px) {
+  .map-sticky {
+    position: static;
+    height: auto;
+  }
+  .map-sticky > * { height: auto; }
+}

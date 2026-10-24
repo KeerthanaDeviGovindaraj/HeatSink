@@ -77,6 +77,86 @@ function downloadMarkdown(text: string, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Render the deterministic summary Markdown as formatted React elements for
+ * on-screen display (R7.1 readability). Covers exactly the subset
+ * buildSummaryMarkdown emits: `#`/`##` headings, `- ` list items, `**bold**`
+ * inline spans, blank-line separators, and plain paragraphs. The RAW markdown
+ * string is still what Copy/Download use — this is display only, so there is
+ * no HTML injection (we build elements, never dangerouslySetInnerHTML).
+ */
+function renderInline(text: string): React.ReactNode[] {
+  // Split on **bold** spans; odd indices are the bold captures.
+  const parts = text.split(/\*\*(.+?)\*\*/g);
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : <span key={i}>{part}</span>,
+  );
+}
+
+function RenderedSummary({ markdown }: { markdown: string }) {
+  const lines = markdown.split('\n');
+  const blocks: React.ReactNode[] = [];
+  let list: string[] = [];
+  const flushList = (key: string) => {
+    if (list.length === 0) return;
+    const items = list.slice();
+    blocks.push(
+      <ul key={key} style={{ margin: '0.3rem 0 0.6rem', paddingLeft: '1.1rem', lineHeight: 1.5 }}>
+        {items.map((it, i) => (
+          <li key={i}>{renderInline(it)}</li>
+        ))}
+      </ul>,
+    );
+    list = [];
+  };
+  lines.forEach((raw, idx) => {
+    const line = raw.trimEnd();
+    if (line.startsWith('## ')) {
+      flushList(`l${idx}`);
+      blocks.push(
+        <h3 key={idx} style={{ margin: '0.9rem 0 0.2rem', fontSize: '0.92rem', color: '#0b3d5c' }}>
+          {renderInline(line.slice(3))}
+        </h3>,
+      );
+    } else if (line.startsWith('# ')) {
+      flushList(`l${idx}`);
+      blocks.push(
+        <h2 key={idx} style={{ margin: '0 0 0.3rem', fontSize: '1.05rem', color: '#0b3d5c' }}>
+          {renderInline(line.slice(2))}
+        </h2>,
+      );
+    } else if (line.startsWith('- ')) {
+      list.push(line.slice(2));
+    } else if (line.trim() === '') {
+      flushList(`l${idx}`);
+    } else {
+      flushList(`l${idx}`);
+      blocks.push(
+        <p key={idx} style={{ margin: '0 0 0.4rem', lineHeight: 1.5 }}>
+          {renderInline(line)}
+        </p>,
+      );
+    }
+  });
+  flushList('last');
+  return (
+    <div
+      style={{
+        margin: 0,
+        padding: '0.7rem 0.9rem',
+        background: '#f5f7f8',
+        borderRadius: 6,
+        fontSize: '0.82rem',
+        color: '#263238',
+        maxHeight: '24rem',
+        overflow: 'auto',
+      }}
+    >
+      {blocks}
+    </div>
+  );
+}
+
 const buttonStyle: React.CSSProperties = {
   padding: '0.45rem 0.8rem',
   background: '#0b3d5c',
@@ -141,22 +221,7 @@ export function ReportPanel({ result, species, metas, siteLabel }: ReportPanelPr
         </div>
       </div>
 
-      <pre
-        style={{
-          margin: 0,
-          padding: '0.7rem 0.8rem',
-          background: '#f5f7f8',
-          borderRadius: 6,
-          fontSize: '0.78rem',
-          lineHeight: 1.5,
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          maxHeight: '22rem',
-          overflow: 'auto',
-        }}
-      >
-        {markdown}
-      </pre>
+      <RenderedSummary markdown={markdown} />
     </section>
   );
 }

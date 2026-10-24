@@ -375,7 +375,7 @@ export function App() {
                 alignItems: 'flex-start',
               }}
             >
-              <div style={{ flex: '2 1 20rem', minWidth: '18rem' }}>
+              <div className="map-sticky" style={{ flex: '2 1 20rem', minWidth: '18rem' }}>
                 <MapView
                   rows={snapshots.baseline}
                   window={snapshots.metas.fishbot?.window ?? ''}
@@ -455,6 +455,9 @@ export function App() {
                   species={shownSpecies}
                   selectedId={selectedSpeciesId}
                   onSelect={setSelectedSpeciesId}
+                  risksById={
+                    new Map((result?.risks ?? []).map((r) => [r.speciesId, r]))
+                  }
                 />
                 {result && (
                   <ReportPanel
