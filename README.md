@@ -6,8 +6,8 @@
 
 | | |
 |---|---|
-| **Live demo** | TODO: https://… (free, no login) |
-| **Demo video (< 3 min)** | TODO: https://youtube.com/… |
+| **Live demo** | https://keerthanadevigovindaraj.github.io/HeatSink/ (free, no login) |
+| **Demo video (< 3 min)** | _TODO: add the public video link before submitting (task 10.3)_ |
 | **Track** | Climate Tech: *Understanding and protecting the ocean* |
 | **Built with** | Kiro IDE + Kiro CLI (specs, steering, hooks, MCP, property-based testing) |
 
@@ -89,8 +89,9 @@ Radially symmetric plume, no tides or currents, steady state, bottom effect only
 | FIShBOT bottom temperature | Baseline grid | Commercial Fisheries Research Foundation (ERDDAP) |
 | eMOLT bottom temperature | Measured boat points | eMOLT program and the fishing vessels that collected the data |
 | NOAA NDBC buoy 44013 | Surface water temperature context | NOAA National Data Buoy Center |
-| Massachusetts land polygons | Land mask | TODO: MassGIS layer name |
-| Species thermal thresholds | Lobster and winter flounder limits | TODO: sources listed in `public/data/species.json` |
+| Massachusetts land polygons | Land mask (on-land outfall rejection, land-point removal) | Natural Earth 1:10m Admin 1 – States, Provinces (public domain) |
+| Species thermal thresholds | Lobster and winter flounder limits | Lobster ~20 °C (Tanaka & Chen 2017, DOI 10.1002/2017JC012949); winter flounder ~22 °C (Pereira et al. 1999, NOAA NMFS-NE-138). Full citations in `public/data/species.json` |
+| Diadromous fish sampling stations (stretch) | River-mouth reach flag | MassGIS / MA Division of Marine Fisheries, DiadromousFish FeatureServer |
 | Policy context | Problem framing | Executive Order 658 (Sept 2026); Massachusetts drought declarations |
 
 ## How we used Kiro
