@@ -3,7 +3,13 @@ import { AssumptionsBanner } from './components/AssumptionsBanner';
 import { ErrorCard } from './components/ErrorCard';
 import { Footer } from './components/Footer';
 import { MapView } from './components/MapView';
+import {
+  DEFAULT_SITE_PARAMS,
+  SiteEditor,
+  type SiteParams,
+} from './components/SiteEditor';
 import { evaluateOutfallPlacement } from './components/placement';
+import type { PresetSite } from './model/presets';
 import { useSnapshots } from './data/useSnapshots';
 import type { SourceMetas } from './data/useSnapshots';
 import type { FeatureCollection } from 'geojson';
@@ -26,6 +32,19 @@ export function App() {
   // Click-to-place state (R3.2): the current outfall and a transient land notice.
   const [outfall, setOutfall] = useState<LatLon | null>(null);
   const [landMessage, setLandMessage] = useState<string | null>(null);
+
+  // Facility parameters (R3.3 defaults), driven by the SiteEditor sliders. App
+  // owns them so the full SiteInputs = outfall + params can be composed for
+  // runSite in later tasks.
+  const [siteParams, setSiteParams] = useState<SiteParams>(DEFAULT_SITE_PARAMS);
+
+  // Preset buttons set both location and facility params in one click (R3.1).
+  const handleSelectPreset = useCallback((preset: PresetSite) => {
+    const { lat, lon, facilityMW, deltaTC, mixRatio, heatFraction } = preset.inputs;
+    setOutfall({ lat, lon });
+    setLandMessage(null);
+    setSiteParams({ facilityMW, deltaTC, mixRatio, heatFraction });
+  }, []);
 
   // On a map click, let the pure helper decide: place in water (clearing any
   // prior land notice) or reject on land with a friendly message (R3.2).
@@ -100,12 +119,31 @@ export function App() {
                 </button>
               </div>
             )}
-            <MapView
-              rows={snapshots.baseline}
-              window={snapshots.metas.fishbot?.window ?? ''}
-              outfall={outfall}
-              onMapClick={handleMapClick}
-            />
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                alignItems: 'flex-start',
+              }}
+            >
+              <div style={{ flex: '2 1 20rem', minWidth: '18rem' }}>
+                <MapView
+                  rows={snapshots.baseline}
+                  window={snapshots.metas.fishbot?.window ?? ''}
+                  outfall={outfall}
+                  onMapClick={handleMapClick}
+                />
+              </div>
+              <div style={{ flex: '1 1 16rem', minWidth: '15rem' }}>
+                <SiteEditor
+                  params={siteParams}
+                  onChange={setSiteParams}
+                  outfall={outfall}
+                  onSelectPreset={handleSelectPreset}
+                />
+              </div>
+            </div>
           </>
         )}
       </main>
