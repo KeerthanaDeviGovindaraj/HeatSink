@@ -1,0 +1,7 @@
+{
+  "_note": "Fill in thresholds ONLY from a citable source. Entries with an empty source are hidden by the app (Req 5.4). Set verified=true after a teammate checks the source.",
+  "species": [
+    { "id": "american-lobster", "name": "American lobster", "thresholdC": null, "source": "", "verified": false },
+    { "id": "winter-flounder", "name": "Winter flounder", "thresholdC": null, "source": "", "verified": false }
+  ]
+}

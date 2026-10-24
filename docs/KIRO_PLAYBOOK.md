@@ -1,0 +1,52 @@
+# Kiro Playbook — how we use Kiro on HeatSink
+
+Fill this in AS YOU GO. It becomes the "How Kiro was used" write-up required by the submission rules.
+
+## 0. Setup (first 15 minutes after pitching)
+1. Create the repo, copy this `.kiro/` folder and `docs/` into the root, commit, push (public).
+2. Open the repo in Kiro IDE. Check the Steering panel shows: product, tech, structure (always), ocean-data and thermal-model (file-matched).
+3. Open `.kiro/specs/heatsink/`. Run "Analyze Requirements" on `requirements.md` and fix anything it flags. Note what it caught below.
+4. Run tasks wave by wave from `tasks.md`. Waves 2, 3 and 4 can run in parallel across teammates.
+
+## 1. Agent hooks to create (Kiro panel → Hooks → +, describe in plain English)
+| Hook | Trigger | What it does | Why it helps |
+|---|---|---|---|
+| Model tests on save | File saved in `src/model/**` | Run `npm test -- tests/model` and report failures | Physics regressions caught instantly |
+| Validate snapshot | File saved in `public/data/**` | Run validators; report dropped rows and reasons | Bad data never reaches the demo |
+| Units guard | File saved in `src/**/*.ts` | Check new numeric variables include a unit suffix (W, M3s, C, M) and SI units per `tech.md` | Prevents unit bugs (the #1 physics bug) |
+| Playbook logger | Agent stops (or manual, if no spec-task trigger exists) | Append a one-line entry to section 6 of this file: task, Kiro feature used, outcome | Write-up writes itself |
+
+## 2. MCP servers to try
+- A fetch/HTTP MCP server to let Kiro query ERDDAP directly while writing `scripts/fetch-*.ts` (inspect real column names instead of guessing).
+- GitHub MCP server for issues/PRs if multiple teammates work in parallel.
+Record: what MCP let us do that would have been hard otherwise.
+
+## 3. Property-based testing (Correctness)
+Our model is physics, which has natural invariants — ideal for PBT. The 14 properties live in `.kiro/steering/thermal-model.md` and as EARS criteria in Requirement 10. v1 of the spec had a score formula that violated property 9 (more heat could lower the score); record how this was found and fixed. Record any bug PBT found that a unit test missed (e.g., negative excess from a sign error, energy not conserved when mixing ratio > 0).
+
+## 4. Steering strategy
+- `always` files hold product honesty rules and stack conventions so every generation respects them.
+- `fileMatch` files load ocean-data rules only when touching data code, and the thermal equations only when touching model code — keeps context focused.
+Record: which steering rule changed Kiro's output most (likely the "pure functions + SI units" rule, or the "screening tool disclaimer" rule).
+
+## 5. Kiro surfaces used
+Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE for specs and UI; CLI headless to run the data refresh; Web agent to open a PR for a stretch task in parallel.
+
+## 6. Log (fill during the day)
+| Time | Task | Kiro feature | What happened |
+|---|---|---|---|
+| | | | |
+
+## 7. Spec-driven vs vibe coding (write at the end)
+- How the spec structured the work:
+- Where it saved time:
+- One thing we vibe-coded and how it compared:
+
+## 8. Submission checklist
+- [ ] Public GitHub repo with `.kiro/` at root (not gitignored)
+- [ ] Live demo link in README
+- [ ] Text description of features
+- [ ] Video < 3 min, public on YouTube/Vimeo, no copyrighted music
+- [ ] Track: Climate Tech
+- [ ] This playbook turned into the "How Kiro was used" write-up
+- [ ] All team members added (max 4)
