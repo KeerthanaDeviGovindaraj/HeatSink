@@ -63,6 +63,8 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 16:06 | Fix blank basemap (OSM tile URL {z}/{x}/{y}) | MCP | Playwright MCP found tiles 400ing (wrong x/y/z order, zoom 77); fixed template, all 12 tiles load (naturalWidth 256); build + 153 tests green; pushed 53f2633 |
 | 16:09 | Merge PR #15 to main + redeploy; verify live map | MCP | Merged keerthana->main (map fix, build hardening, maxSafe, v2.2, polish); deploy green; Playwright confirms all 12 basemap tiles load live |
 | 16:13 | Add judge-facing InsightsStrip UI | MCP | At-a-glance verdict + 4 stat cards (newly-exceeded, reach, flow vs Brayton, coverage) from computed SiteResult; Playwright-verified live; build + 153 tests green; pushed 800c071 |
+| 16:18 | Map default framing to MA coast + merge PR #16, redeploy | MCP | Map opens on Cape Cod/Mass Bay (center 42,-70.4 zoom 9); PR #16 merged, deploy green; Playwright confirms insights strip + tiles live |
+| 16:22 | Show selected preset/site in SiteEditor | MCP | Active preset highlights (checkmark + aria-pressed) and editor shows "Selected: <site>"; Playwright-verified; build + 153 tests green; pushed 9e40948 |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:
