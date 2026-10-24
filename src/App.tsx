@@ -29,6 +29,7 @@ import {
 } from './model/cumulative';
 import { samplePoints } from './model/grid';
 import { runSite } from './model/runSite';
+import { maxSafeMW, type MaxSafeResult } from './model/maxSafe';
 import { NEGLIGIBLE_C } from './model/constants';
 import {
   InputRangeError,
@@ -198,6 +199,22 @@ export function App() {
     };
   }, [result, selectedSpecies]);
 
+  // Largest safe size for the insights strip (R11): the biggest facility (MW)
+  // at this site/settings where every SELECTED species stays Low. If one
+  // species is picked, require just that one; otherwise require all displayed
+  // species. Null until an outfall is placed; guarded against model throws.
+  const maxSafe = useMemo<MaxSafeResult | null>(() => {
+    if (!outfall) return null;
+    const ids = selectedSpeciesId
+      ? [selectedSpeciesId]
+      : modelSpecies.map((sp) => sp.id);
+    try {
+      return maxSafeMW({ ...outfall, ...siteParams }, cells, modelSpecies, land, ids);
+    } catch {
+      return null;
+    }
+  }, [outfall, siteParams, cells, modelSpecies, land, selectedSpeciesId]);
+
   // Cumulative-mode result (R8, stretch). DESIGN DECISION — shared grid:
   // sumImpacts needs an index-aligned grid, but saved sites have different
   // outfalls (different native grids). The correct superposition is over ONE
@@ -347,7 +364,9 @@ export function App() {
                 </button>
               </div>
             )}
-            {result && <InsightsStrip result={result} siteLabel={siteLabel} />}
+            {result && (
+              <InsightsStrip result={result} siteLabel={siteLabel} maxSafe={maxSafe} />
+            )}
             <div
               style={{
                 display: 'flex',
@@ -356,7 +375,7 @@ export function App() {
                 alignItems: 'flex-start',
               }}
             >
-              <div style={{ flex: '2 1 20rem', minWidth: '18rem' }}>
+              <div className="map-sticky" style={{ flex: '2 1 20rem', minWidth: '18rem' }}>
                 <MapView
                   rows={snapshots.baseline}
                   window={snapshots.metas.fishbot?.window ?? ''}
@@ -436,6 +455,9 @@ export function App() {
                   species={shownSpecies}
                   selectedId={selectedSpeciesId}
                   onSelect={setSelectedSpeciesId}
+                  risksById={
+                    new Map((result?.risks ?? []).map((r) => [r.speciesId, r]))
+                  }
                 />
                 {result && (
                   <ReportPanel

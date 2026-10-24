@@ -16,13 +16,14 @@ import {
   CircleMarker,
   MapContainer,
   Rectangle,
+  ScaleControl,
   TileLayer,
   Tooltip,
   useMap,
   useMapEvents,
 } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { LatLon } from '../model/grid';
 import type { PlumeRing } from '../model/plume';
 import type { OceanRow, Station } from '../data/types';
@@ -81,6 +82,28 @@ function FitMassachusetts() {
     done.current = true;
     map.fitBounds(MA_COAST_BOUNDS, { padding: [8, 8], animate: false });
   }, [map]);
+  return null;
+}
+
+/**
+ * Zoom the map to a newly placed/selected outfall (R3.1): when `target`
+ * changes to a non-null location, pan+zoom to it. Skips the very first value
+ * so it does not fight FitMassachusetts on load.
+ */
+function FlyToOutfall({ target }: { target: LatLon | null | undefined }) {
+  const map = useMap();
+  const first = useRef(true);
+  const key = target ? `${target.lat},${target.lon}` : '';
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    if (target) {
+      map.setView([target.lat, target.lon], 11, { animate: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
   return null;
 }
 const OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -205,6 +228,8 @@ export function MapView({
       >
         <TileLayer url={OSM_TILE_URL} attribution={OSM_ATTRIBUTION} />
         <FitMassachusetts />
+        <FlyToOutfall target={outfall} />
+        <ScaleControl position="bottomleft" imperial metric />
         <ClickCapture onClick={onMapClick} />
         {outfall &&
           sortedRings.map((ring, i) => {
@@ -354,16 +379,83 @@ export function MapView({
           </CircleMarker>
         ))}
       </MapContainer>
-      <Legend label={BASELINE_LABEL} />
-      {outfall && sortedRings.length > 0 && <RingLegend rings={sortedRings} />}
-      {exceedance && (
-        <ExceedanceLegend
-          speciesName={exceedance.speciesName}
-          thresholdC={exceedance.thresholdC}
-        />
-      )}
-      {stations && stations.length > 0 && (
-        <StationLegend count={stations.length} />
+      <CombinedLegend
+        baselineLabel={BASELINE_LABEL}
+        rings={outfall ? sortedRings : []}
+        exceedance={exceedance ?? null}
+        stationCount={stations?.length ?? 0}
+      />
+    </div>
+  );
+}
+
+/**
+ * One collapsible legend panel (bottom-right) that merges the baseline color
+ * scale with the plume rings, the species exceedance key, and the station
+ * swatch when those layers are active. Replaces the previous four separate
+ * floating legends. A small button collapses it to just its title.
+ */
+function CombinedLegend({
+  baselineLabel,
+  rings,
+  exceedance,
+  stationCount,
+}: {
+  baselineLabel: string;
+  rings: PlumeRing[];
+  exceedance: { speciesName?: string | undefined; thresholdC: number } | null;
+  stationCount: number;
+}) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 12,
+        right: 12,
+        zIndex: 1000,
+        background: 'rgba(255,255,255,0.96)',
+        padding: '0.5rem 0.6rem',
+        borderRadius: 6,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+        font: '12px/1.4 system-ui, sans-serif',
+        maxWidth: 230,
+        maxHeight: '70%',
+        overflow: 'auto',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{ fontWeight: 700 }}>Legend</span>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label={open ? 'Collapse legend' : 'Expand legend'}
+          style={{
+            border: '1px solid #cfd8dc',
+            background: '#eceff1',
+            borderRadius: 4,
+            cursor: 'pointer',
+            fontSize: 11,
+            lineHeight: 1,
+            padding: '2px 6px',
+          }}
+        >
+          {open ? '\u2212' : '+'}
+        </button>
+      </div>
+      {open && (
+        <div style={{ marginTop: 6, display: 'grid', gap: 10 }}>
+          <LegendBody label={baselineLabel} />
+          {rings.length > 0 && <RingLegendBody rings={rings} />}
+          {exceedance && (
+            <ExceedanceLegendBody
+              speciesName={exceedance.speciesName}
+              thresholdC={exceedance.thresholdC}
+            />
+          )}
+          {stationCount > 0 && <StationLegendBody count={stationCount} />}
+        </div>
       )}
     </div>
   );
@@ -374,22 +466,9 @@ export function MapView({
  * Positioned bottom-left so it clears the color legend (bottom-right), the ring
  * legend (top-right) and the exceedance legend (top-left).
  */
-function StationLegend({ count }: { count: number }) {
+function StationLegendBody({ count }: { count: number }) {
   return (
-    <div
-      style={{
-        position: 'absolute',
-        bottom: 12,
-        left: 12,
-        zIndex: 1000,
-        background: 'rgba(255,255,255,0.95)',
-        padding: '0.5rem 0.6rem',
-        borderRadius: 6,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-        font: '12px/1.4 system-ui, sans-serif',
-        maxWidth: 210,
-      }}
-    >
+    <div>
       <div style={{ fontWeight: 700, marginBottom: 4 }}>
         Diadromous fish stations{' '}
         <span style={{ color: '#607d8b', fontWeight: 600 }}>· MEASURED</span>
@@ -418,7 +497,7 @@ function StationLegend({ count }: { count: number }) {
  * and threshold. Positioned top-left so it does not overlap the ring legend
  * (top-right) or the color legend (bottom-right).
  */
-function ExceedanceLegend({
+function ExceedanceLegendBody({
   speciesName,
   thresholdC,
 }: {
@@ -426,20 +505,7 @@ function ExceedanceLegend({
   thresholdC: number;
 }) {
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 12,
-        left: 12,
-        zIndex: 1000,
-        background: 'rgba(255,255,255,0.95)',
-        padding: '0.5rem 0.6rem',
-        borderRadius: 6,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-        font: '12px/1.4 system-ui, sans-serif',
-        maxWidth: 200,
-      }}
-    >
+    <div>
       <div style={{ fontWeight: 700, marginBottom: 4 }}>
         {speciesName ?? 'Species'} threshold{' '}
         <span style={{ color: '#607d8b', fontWeight: 600 }}>· MODELED</span>
@@ -482,24 +548,11 @@ function ExceedanceLegend({
  * the MODELED tag and the shallow-water caveat. Positioned top-right so it does
  * not overlap the baseline color legend (bottom-right).
  */
-function RingLegend({ rings }: { rings: PlumeRing[] }) {
+function RingLegendBody({ rings }: { rings: PlumeRing[] }) {
   // Show hottest level first (smallest radius): reverse the largest-first order.
   const ordered = [...rings].sort((a, b) => b.excessC - a.excessC);
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 12,
-        right: 12,
-        zIndex: 1000,
-        background: 'rgba(255,255,255,0.95)',
-        padding: '0.5rem 0.6rem',
-        borderRadius: 6,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-        font: '12px/1.4 system-ui, sans-serif',
-        maxWidth: 190,
-      }}
-    >
+    <div>
       <div style={{ fontWeight: 700, marginBottom: 4 }}>
         Plume rings <span style={{ color: '#607d8b', fontWeight: 600 }}>· MODELED</span>
       </div>
@@ -529,22 +582,10 @@ function RingLegend({ rings }: { rings: PlumeRing[] }) {
 }
 
 /** Color legend showing each band in °C with the °F equivalent (R1.2). */
-function Legend({ label }: { label: string }) {
+function LegendBody({ label }: { label: string }) {
   const stops = legendStops();
   return (
-    <div
-      style={{
-        position: 'absolute',
-        bottom: 12,
-        right: 12,
-        zIndex: 1000,
-        background: 'rgba(255,255,255,0.95)',
-        padding: '0.5rem 0.6rem',
-        borderRadius: 6,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-        font: '12px/1.4 system-ui, sans-serif',
-      }}
-    >
+    <div>
       <div style={{ fontWeight: 700, marginBottom: 4 }}>{label}</div>
       <div style={{ fontWeight: 600, marginBottom: 2 }}>Bottom temp</div>
       {stops.map((s) => (

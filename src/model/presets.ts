@@ -73,7 +73,7 @@ export const PRESET_SITES: readonly PresetSite[] = [
   // where the data is too sparse (product honesty rule). It is therefore
   // exempt from the coverage ≥ MIN_COVERAGE check in presets.test.ts.
   {
-    name: 'Nantucket Sound (warm cell, low coverage)',
+    name: 'Nantucket Sound (warm water)',
     inputs: { lat: 41.555, lon: -70.134, ...DEFAULT_FACILITY },
   },
 ] as const;
