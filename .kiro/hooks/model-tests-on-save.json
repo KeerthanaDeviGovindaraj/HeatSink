@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Model tests on save",
+      "trigger": "PostFileSave",
+      "description": "Runs model property + unit tests whenever a file in src/model changes, catching physics regressions instantly.",
+      "matcher": "src/model/.*\\.ts$",
+      "action": {
+        "type": "command",
+        "command": "npm test -- tests/model"
+      }
+    }
+  ]
+}
