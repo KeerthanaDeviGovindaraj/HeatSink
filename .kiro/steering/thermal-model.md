@@ -2,7 +2,7 @@
 inclusion: fileMatch
 fileMatchPattern: ["src/model/**", "tests/**"]
 ---
-# Thermal screening model — equations and assumptions (v2.1)
+# Thermal screening model — equations and assumptions (v2.2)
 
 Changes from v1: impacts are computed on a fine sampling grid (not 7 km cells); the site score
 is based on newly exceeded AREA (fixes the score-monotonicity bug and divide-by-zero); bottom
@@ -11,6 +11,8 @@ effects are limited to shallow water; properties 11–14 added.
 Changes from v2 (v2.1): sample points on land are discarded (fixes false "Insufficient data" at coastal
 sites and plumes drawn over towns); excess below NEGLIGIBLE_C is zeroed before any threshold test
 (fixes a counterexample to property 13); properties 15–16 added.
+
+Changes from v2.1 (v2.2): added the largest safe size search (maxSafeMW) and properties 17–18.
 
 ## Constants (define once in `src/model/constants.ts`)
 - Seawater density RHO = 1025 kg/m³
@@ -74,6 +76,14 @@ sites and plumes drawn over towns); excess below NEGLIGIBLE_C is zeroed before a
 - IF coverage < MIN_COVERAGE THEN level = "Insufficient data" (score still computed but shown greyed out).
 - Rationale: depends only on area the data center pushes past a limit; bounded 0–100; rises with heat; never divides by zero.
 
+## Largest safe size (maxSafeMW)
+
+- Question: for a site and fixed deltaTC, mixRatio, heatFraction, what is the largest facilityMW (integer, 1–500) for which EVERY selected species scores Low (score < 10)?
+- Algorithm: binary search over integer MW in [1, 500] using runSite. Valid because property 9 guarantees each species score is non-decreasing in MW.
+- Results: { maxMW: n } where n is safe and n+1 is not (or n = 500, shown as "500+ MW (upper bound of the tool)"); { maxMW: null } when even 1 MW is not Low ("No size is Low impact at this site").
+- Coverage is reported at maxMW; if coverage < MIN_COVERAGE the result is labeled "Insufficient data" instead of a size.
+- At most ~10 runSite calls per site; reuse the site's sample points (land mask computed once).
+
 ## Cumulative mode (stretch)
 - Excess from multiple sites adds linearly at each sample point: `excessTotal = Σ excess_i` (superposition).
 
@@ -98,3 +108,5 @@ water ≤ 20 m deep, placeholder calibration constants. Screening heuristic, NOT
 14. Zero-impact: if newlyExceededKm2 == 0 then score == 0; coverage is always within [0, 1].
 15. Land rule: no retained sample point lies inside LAND_MASK; changing land-point baselines never changes coverage or any area.
 16. Negligible rule: for every point, bottomExcessC == 0 or bottomExcessC ≥ NEGLIGIBLE_C; every newly exceeded point is also a plume point.
+17. Max-safe correctness: if maxMW = n then every selected species scores < 10 at n, and (n == 500 or some species scores ≥ 10 at n+1).
+18. Max-safe null case: maxMW is null if and only if some selected species scores ≥ 10 at 1 MW; the result never depends on the facilityMW value passed in.

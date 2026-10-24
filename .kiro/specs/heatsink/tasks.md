@@ -49,6 +49,20 @@ Numbering matches TEAM_PLAN.md. A = Engine + Kiro (src/model, tests/model, .kiro
   - [x] 9.1 (stretch) Cumulative mode UI using sumImpacts; P8 test. _R8_
   - [x] 9.2 (stretch) Diadromous stations layer and reach flag. _R9_
 
+- [ ] 11. Largest safe size (A, then B for UI)
+  - [ ] 11.1 (A) src/model/maxSafe.ts: maxSafeMW binary search reusing sample points. _R11.1–R11.4_
+  - [ ] 11.2 (A) Property tests P17, P18. _R10.20, R10.21_
+  - [ ] 11.3 (B) UI: result line in SiteEditor with "Use this size", column in CompareTable. _R11.1–R11.7_
+
+- [ ] 12. Shareable link (B)
+  - [ ] 12.1 (B) src/data/urlState.ts encode/decode with clamping and notices. _R12.1, R12.4, R12.5_
+  - [ ] 12.2 (B) Property tests P19, P20 in tests/data. _R10.22, R10.23_
+  - [ ] 12.3 (B) Wire into App: restore on load, replaceState on change, "Copy link" button. _R12.2, R12.3_
+
+- [ ] 13. Print brief (B)
+  - [ ] 13.1 (B) PrintBrief component + print.css; hide controls; black-and-white legible. _R13.1, R13.2, R13.4_
+  - [ ] 13.2 (B) Map snapshot or "map not included" fallback; "Print brief" button. _R13.1, R13.3_
+
 - [ ] 10. Ship
   - [~] 10.1 (A) Deploy; phone check on live link. _NFR_
   - [x] 10.2 (B) README: live link, problem, data sources, assumptions, team. _Submission_

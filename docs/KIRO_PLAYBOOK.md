@@ -52,6 +52,8 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 15:24 | Enable Pages + deploy live site (gh CLI) | other | gh auth confirmed admin; re-ran deploy.yml (build+deploy green); live at https://keerthanadevigovindaraj.github.io/HeatSink/ (200, correct base); phone check still manual |
 | 15:29 | Fix live Pages data 404 (loaders BASE_URL) | spec task | PR #12: DATA_BASE now uses import.meta.env.BASE_URL so data serves at /HeatSink/data/*; merged, redeployed green, live map loads (200), 150 tests pass |
 | 15:31 | Commit + push tracker/playbook progress | spec task | Pushed 920d05f to keerthana (tasks.md, tasks.meta.json, playbook); excluded mcp.json (leaked PAT) |
+| 15:35 | Merge main into keerthana to catch up branch | other | Merged origin/main (29 commits) into keerthana, no conflicts; tsc + 150 tests green; pushed 69b1480 |
+| 15:37 | Update spec to v2.2 (maxSafeMW, share link, print brief) | spec task | Added-only edits to thermal-model, requirements (R11-13, P17-18+22-23), design, tasks (sections 11-13); no existing content/checkmarks changed |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:
