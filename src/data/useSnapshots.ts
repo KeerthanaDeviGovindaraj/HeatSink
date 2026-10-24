@@ -21,13 +21,14 @@ import { useEffect, useState } from 'react';
 import type { FeatureCollection } from 'geojson';
 import {
   baselineCellsFromSnapshot,
+  loadDiadromous,
   loadEmolt,
   loadFishbot,
   loadLandMask,
   loadNdbc,
   loadSpecies,
 } from './loaders';
-import type { OceanRow, SnapshotMeta, SpeciesEntry } from './types';
+import type { OceanRow, SnapshotMeta, SpeciesEntry, Station } from './types';
 import type { BaselineCell } from '../model/types';
 
 /** Snapshot meta blocks the Footer renders, keyed by source. */
@@ -56,6 +57,13 @@ export type SnapshotsState =
        * from "none displayable".
        */
       species: SpeciesEntry[];
+      /**
+       * Diadromous fish sampling stations for the river-mouth flag overlay
+       * (stretch R9). Empty array when diadromous.json is absent/invalid —
+       * loadDiadromous degrades to [] and never rejects, so a miss leaves the
+       * optional overlay empty without blanking the map.
+       */
+      stations: Station[];
     };
 
 export function useSnapshots(): SnapshotsState {
@@ -72,8 +80,9 @@ export function useSnapshots(): SnapshotsState {
       loadNdbc(),
       loadLandMask(),
       loadSpecies(),
+      loadDiadromous(),
     ])
-      .then(([fishbot, emolt, ndbc, land, species]) => {
+      .then(([fishbot, emolt, ndbc, land, species, diadromous]) => {
         if (!active) return;
 
         if (fishbot.status === 'rejected') {
@@ -94,6 +103,8 @@ export function useSnapshots(): SnapshotsState {
           metas,
           land: land.status === 'fulfilled' ? land.value : null,
           species: species.status === 'fulfilled' ? species.value.species : [],
+          stations:
+            diadromous.status === 'fulfilled' ? diadromous.value : [],
         });
       })
       .catch((err: unknown) => {

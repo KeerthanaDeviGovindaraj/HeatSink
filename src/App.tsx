@@ -38,7 +38,7 @@ import {
 } from './model/types';
 import { useSnapshots } from './data/useSnapshots';
 import type { SourceMetas } from './data/useSnapshots';
-import type { SpeciesEntry } from './data/types';
+import type { SpeciesEntry, Station } from './data/types';
 import type { FeatureCollection } from 'geojson';
 import type { LatLon } from './model/grid';
 
@@ -113,6 +113,17 @@ export function App() {
   // plume at each point on one shared grid and recompute areas/species. Off by
   // default so single-site behavior is unchanged.
   const [cumulativeMode, setCumulativeMode] = useState(false);
+
+  // River-mouth flag (R9, stretch): when on, show the diadromous fish stations
+  // on the map and flag, per saved site, any station within the site's plume
+  // reach in the comparison table. Off by default so base behavior is
+  // unchanged.
+  const [riverMouthFlag, setRiverMouthFlag] = useState(false);
+
+  // Diadromous fish stations from the committed snapshot (R9). Empty when the
+  // file is absent/invalid (loadDiadromous degrades to []).
+  const stations: Station[] =
+    snapshots.status === 'ready' ? snapshots.stations : [];
 
   // Run the model whenever the outfall, params, baseline cells, or land change
   // (R4.4). Memoized so dragging a slider doesn't recompute until a dependency
@@ -327,6 +338,7 @@ export function App() {
                   onMapClick={handleMapClick}
                   rings={rings}
                   exceedance={exceedance}
+                  stations={riverMouthFlag ? stations : null}
                 />
               </div>
               <div
@@ -414,6 +426,8 @@ export function App() {
                 sites={savedSites}
                 species={shownSpecies}
                 onRemove={handleRemoveSite}
+                stations={stations}
+                showRiverMouthFlag={riverMouthFlag}
               />
             </div>
 
@@ -446,6 +460,45 @@ export function App() {
                   savedCount={savedSites.length}
                 />
               )}
+            </div>
+
+            {/* River-mouth flag (R9, stretch): toggle the diadromous station
+                overlay + per-site reach flag in the comparison table. */}
+            <div style={{ marginTop: '1rem' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.4rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  color: stations.length === 0 ? '#90a4ae' : '#0b3d5c',
+                  cursor: stations.length === 0 ? 'not-allowed' : 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={riverMouthFlag}
+                  disabled={stations.length === 0}
+                  onChange={(e) => setRiverMouthFlag(e.target.checked)}
+                />
+                River-mouth flag (diadromous fish stations)
+              </label>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '0.72rem',
+                  color: '#78909c',
+                  lineHeight: 1.5,
+                }}
+              >
+                {stations.length === 0
+                  ? 'No diadromous station data loaded.'
+                  : riverMouthFlag
+                    ? `Showing ${stations.length} MassGIS/DMF diadromous fish sampling stations (MEASURED). The comparison table flags any station within each saved site's plume reach.`
+                    : `Enable to overlay ${stations.length} MassGIS/DMF diadromous fish stations and flag those within each saved site's plume reach.`}
+              </p>
             </div>
           </>
         )}

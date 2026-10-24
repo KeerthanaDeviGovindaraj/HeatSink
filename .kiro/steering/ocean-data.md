@@ -12,7 +12,7 @@ Start from the hackathon kit zip files; live URLs are optional refreshes. Workin
 | eMOLT bottom temperature (ERDDAP) | Measured boat points | Cite the eMOLT program and the fishing vessels that collected it | CONFIRMED live: `erddap.emolt.net/erddap/tabledap/eMOLT_RT` (see Confirmed URLs). Kit's `erddap.ondeckdata.com/.../emolt_data.csv` is dead. Kit slice is one week (Aug 2024): no trends from it. |
 | NOAA NDBC buoy 44013 | Surface water temperature context near Boston | Cite NOAA NDBC | Missing values ("MM") → null. |
 | Simplified MA land polygons (`public/data/ma-land.geojson`) | Land mask for sample points and outfall check | Cite the source used (e.g., MassGIS) | Simplify to a few thousand vertices (e.g., mapshaper) so 20k point-in-polygon tests stay fast. |
-| MassGIS diadromous fish stations (stretch) | River-mouth sensitivity flag | Cite MassGIS; confirm layer terms | No coordinates in kit file. |
+| MassGIS diadromous fish stations (stretch) | River-mouth sensitivity flag | Cite MassGIS and the MA Division of Marine Fisheries (DMF) | CONFIRMED live, committed to `public/data/diadromous.json` (task 9.2). Kit file lacked coordinates; fetched real geometry from the MassGIS "DiadromousFish" FeatureServer, **Sampling Stations** layer (see Confirmed URLs). License permits copy/use. |
 
 ## Rules
 - Every snapshot has a meta block: source, url, fetchedAt, window, rowCount, droppedCount.
@@ -47,6 +47,16 @@ Shared request params (used in the per-source queries below):
 
 ### NDBC buoy 44013 (surface context) — NOAA, not re-checked here (task 4.4)
 - Standard realtime text feed: `https://www.ndbc.noaa.gov/data/realtime2/44013.txt`; missing values are `MM` → null (R2.3).
+
+### MassGIS diadromous fish sampling stations (`public/data/diadromous.json`) — CONFIRMED, committed (task 9.2, stretch R9)
+- Source: **Massachusetts Division of Marine Fisheries (DMF) / MassGIS** — "Diadromous Fish" service, **Sampling Stations** point layer (layer 0).
+- FeatureServer layer: `https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/DiadromousFish/FeatureServer/0`
+- Landing page / metadata: https://www.mass.gov/info-details/massgis-data-diadromous-fish
+- Working GeoJSON query (reprojected to WGS84):
+  `.../FeatureServer/0/query?where=1=1&outFields=STATID,RIVER,STATION_TYPE,LOCATION,TOWN,YEAR_INSTALLED&returnGeometry=true&outSR=4326&f=geojson`
+- Fields kept: `RIVER`, `STATION_TYPE` (River Herring / Smelt fyke net / YOY eel trap / Eel ramp), `LOCATION`, `TOWN`, plus the point geometry → `lat`/`lon`. `STATID` is NOT unique in the source, so the committed `id` is synthesized as `dia-<STATID>-<index>`.
+- License: Commonwealth of Massachusetts EEA/DFG/DMF provide the data "as is"; the layer's `copyrightText` states "Permission is granted to copy and use the materials herein." Attribution: cite MassGIS and the MA Division of Marine Fisheries. Source + license are also recorded in the file's top-level `metadata` member.
+- Use: the stretch river-mouth sensitivity flag only (R9) — 29 coastal sampling stations flagged when they fall within a saved site's plume reach. Approximate relative locations per the source disclaimer; not a permit or legal survey.
 
 ### MA land mask (`public/data/ma-land.geojson`) — CONFIRMED, committed (task 4.5)
 - Source: **Natural Earth** 1:10m Admin 1 – States, Provinces (`ne_10m_admin_1_states_provinces`), filtered to the Massachusetts feature.

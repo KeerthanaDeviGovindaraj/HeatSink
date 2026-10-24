@@ -4,7 +4,13 @@
  */
 import type { FeatureCollection } from 'geojson';
 import type { BaselineCell } from '../model/types';
-import type { OceanRow, Snapshot, SpeciesFile } from './types';
+import type {
+  DiadromousFile,
+  OceanRow,
+  Snapshot,
+  SpeciesFile,
+  Station,
+} from './types';
 
 const DATA_BASE = '/data';
 
@@ -60,6 +66,42 @@ export async function loadSpecies(): Promise<SpeciesFile> {
   const res = await fetch(`${DATA_BASE}/species.json`);
   if (!res.ok) throw new Error(`Failed to load species.json: ${res.status}`);
   return (await res.json()) as SpeciesFile;
+}
+
+/** A finite number guard used to drop malformed station coordinates. */
+function isFiniteNumber(v: unknown): v is number {
+  return typeof v === 'number' && Number.isFinite(v);
+}
+
+/**
+ * Fetch and parse the committed diadromous fish sampling stations
+ * (stretch R9, public/data/diadromous.json, MassGIS/DMF).
+ *
+ * This loader DEGRADES GRACEFULLY: a 404, a parse failure, a non-array
+ * `stations`, or any station missing finite lat/lon yields an empty list (or
+ * drops just the bad station) rather than throwing. A missing or broken
+ * diadromous file must never blank the map — the river-mouth flag is an
+ * optional overlay (R9 "WHEN enabled").
+ *
+ * @returns The validated station list, or [] when the file is absent/invalid.
+ */
+export async function loadDiadromous(): Promise<Station[]> {
+  try {
+    const res = await fetch(`${DATA_BASE}/diadromous.json`);
+    if (!res.ok) return [];
+    const file = (await res.json()) as DiadromousFile;
+    if (!file || !Array.isArray(file.stations)) return [];
+    return file.stations.filter(
+      (s): s is Station =>
+        !!s &&
+        typeof s.id === 'string' &&
+        typeof s.name === 'string' &&
+        isFiniteNumber(s.lat) &&
+        isFiniteNumber(s.lon),
+    );
+  } catch {
+    return [];
+  }
 }
 
 /**

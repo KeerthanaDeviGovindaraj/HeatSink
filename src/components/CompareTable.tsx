@@ -18,7 +18,8 @@
  * is hard-coded.
  */
 import type { CSSProperties } from 'react';
-import type { SpeciesEntry } from '../data/types';
+import type { SpeciesEntry, Station } from '../data/types';
+import { stationsWithinReach } from './riverMouth';
 import {
   AREA_SCALE_KM2,
   MIN_COVERAGE,
@@ -41,6 +42,15 @@ export interface CompareTableProps {
   species: SpeciesEntry[];
   /** Remove one saved site by id. */
   onRemove: (id: string) => void;
+  /**
+   * River-mouth flag (stretch R9). When `showRiverMouthFlag` is true, an extra
+   * column flags, per site, how many of these diadromous fish `stations` fall
+   * within that site's plume reach. Off by default so existing columns and
+   * behavior are unchanged when the feature is disabled.
+   */
+  stations?: readonly Station[];
+  /** Whether to show the river-mouth flag column (R9 "WHEN enabled"). */
+  showRiverMouthFlag?: boolean;
 }
 
 /** Format a coverage fraction as a whole percent, e.g. 0.82 → "82%". */
@@ -101,8 +111,47 @@ function SpeciesCell({
   );
 }
 
-export function CompareTable({ sites, species, onRemove }: CompareTableProps) {
+/**
+ * River-mouth flag cell (stretch R9): how many diadromous fish stations fall
+ * within this site's plume reach, listing which ones. Reassuring grey when none
+ * are in reach; a warning amber with the river/station names when some are.
+ */
+function RiverMouthCell({ inReach }: { inReach: Station[] }) {
+  if (inReach.length === 0) {
+    return (
+      <td style={{ ...CELL, color: '#607d8b', whiteSpace: 'normal' }}>
+        None in reach
+      </td>
+    );
+  }
+  return (
+    <td
+      style={{
+        ...CELL,
+        color: '#8d6e00',
+        fontWeight: 600,
+        whiteSpace: 'normal',
+      }}
+    >
+      {inReach.length} in reach
+      <br />
+      <span style={{ fontWeight: 400, color: '#78909c', fontSize: '0.72rem' }}>
+        {inReach.map((s) => s.river ?? s.name).join(', ')}
+      </span>
+    </td>
+  );
+}
+
+export function CompareTable({
+  sites,
+  species,
+  onRemove,
+  stations,
+  showRiverMouthFlag = false,
+}: CompareTableProps) {
   const ranked = rankSites(sites);
+  // Only compute reach flags when the feature is enabled and stations exist.
+  const riverMouthOn = showRiverMouthFlag && !!stations && stations.length > 0;
 
   return (
     <section
@@ -165,6 +214,15 @@ export function CompareTable({ sites, species, onRemove }: CompareTableProps) {
                     </span>
                   </th>
                 ))}
+                {riverMouthOn && (
+                  <th style={HEAD_CELL}>
+                    River-mouth flag
+                    <br />
+                    <span style={{ fontWeight: 400, color: '#78909c' }}>
+                      stations in reach
+                    </span>
+                  </th>
+                )}
                 <th style={HEAD_CELL} aria-label="Remove" />
               </tr>
             </thead>
@@ -224,6 +282,9 @@ export function CompareTable({ sites, species, onRemove }: CompareTableProps) {
                         minCoverageMet={minCoverageMet}
                       />
                     ))}
+                    {riverMouthOn && (
+                      <RiverMouthCell inReach={stationsWithinReach(result, stations as Station[])} />
+                    )}
                     <td style={CELL}>
                       <button
                         type="button"
