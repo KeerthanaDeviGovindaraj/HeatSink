@@ -1,5 +1,6 @@
 import { AssumptionsBanner } from './components/AssumptionsBanner';
 import { Footer } from './components/Footer';
+import { MapView } from './components/MapView';
 
 /**
  * App shell. Layout and panels are wired up in later tasks; this is the scaffold
@@ -18,8 +19,8 @@ export function App() {
       <AssumptionsBanner />
 
       <main style={{ flex: 1, padding: '1rem' }}>
-        {/* MapView, SiteEditor, SpeciesPicker, CompareTable, ReportPanel mount here (later tasks). */}
-        <p>Scaffold ready. UI panels are added in subsequent tasks.</p>
+        {/* SiteEditor, SpeciesPicker, CompareTable, ReportPanel mount here (later tasks). */}
+        <MapView />
       </main>
 
       <Footer />
