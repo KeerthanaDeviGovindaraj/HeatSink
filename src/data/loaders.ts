@@ -2,6 +2,7 @@
  * Browser-side loaders. The browser reads ONLY /public/data/*.json at runtime (tech.md).
  * Fetch + validate wiring is completed in a later task.
  */
+import type { FeatureCollection } from 'geojson';
 import type { BaselineCell } from '../model/types';
 import type { OceanRow, Snapshot, SpeciesFile } from './types';
 
@@ -38,6 +39,20 @@ export function baselineCellsFromSnapshot(
   snapshot: Snapshot<OceanRow>,
 ): BaselineCell[] {
   return snapshot.rows.map(oceanRowToBaselineCell);
+}
+
+/**
+ * Fetch and parse the committed Massachusetts land mask (R3.2, R4.1).
+ *
+ * The browser reads only /public/data at runtime (tech.md); `ma-land.geojson`
+ * is the simplified Natural Earth MA polygons the model uses to reject on-land
+ * outfalls (`isOutfallOnLand`) and discard land sample points. Returns the raw
+ * {@link FeatureCollection} so callers can pass it straight to the model.
+ */
+export async function loadLandMask(): Promise<FeatureCollection> {
+  const res = await fetch(`${DATA_BASE}/ma-land.geojson`);
+  if (!res.ok) throw new Error(`Failed to load ma-land.geojson: ${res.status}`);
+  return (await res.json()) as FeatureCollection;
 }
 
 /** Fetch and parse species.json. */
