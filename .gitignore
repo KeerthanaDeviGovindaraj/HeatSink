@@ -16,3 +16,6 @@ dist/
 # '@types/react 2'. These break the build; never track them.
 * [0-9].*
 * [0-9]
+
+# Playwright MCP session output
+.playwright-mcp/
