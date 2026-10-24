@@ -1,7 +1,19 @@
 {
-  "_note": "Fill in thresholds ONLY from a citable source. Entries with an empty source are hidden by the app (Req 5.4). Set verified=true after a teammate checks the source.",
+  "_note": "Thresholds are SCREENING approximations drawn from citable sources (see each entry's `source`). An entry with an empty source is hidden by the app (Req 5.2). `verified` stays false until a human teammate checks the cited source against the value; while false the app shows an 'unverified' badge (Req 5.3). These were populated by an agent, not a human verifier, so both remain verified=false by design.",
   "species": [
-    { "id": "american-lobster", "name": "American lobster", "thresholdC": null, "source": "", "verified": false },
-    { "id": "winter-flounder", "name": "Winter flounder", "thresholdC": null, "source": "", "verified": false }
+    {
+      "id": "american-lobster",
+      "name": "American lobster",
+      "thresholdC": 20,
+      "source": "Upper thermal stress threshold (juvenile/adult), ~20 C bottom water. Tanaka & Chen (2017), 'Implications of Future Northwest Atlantic Bottom Temperatures on the American Lobster Fishery', J. Geophys. Res. Oceans, DOI 10.1002/2017JC012949. Corroborated by CT DEEP / NOAA (20 C / 68 F upper thermal stress threshold) and behavioral avoidance studies (Watson et al. 1999; juveniles avoid >20 C, Lawton/ Golet).",
+      "verified": false
+    },
+    {
+      "id": "winter-flounder",
+      "name": "Winter flounder",
+      "thresholdC": 22,
+      "source": "Screening sublethal/avoidance threshold (juvenile/adult), ~22 C bottom water for this cold-water flatfish (occupied range ~0-25 C, scarce at the warm end). Pereira et al. (1999), 'Essential Fish Habitat Source Document: Winter Flounder (Pseudopleuronectes americanus), Life History and Habitat Characteristics', NOAA Tech. Memo. NMFS-NE-138. https://repository.library.noaa.gov/view/noaa/3135",
+      "verified": false
+    }
   ]
 }
