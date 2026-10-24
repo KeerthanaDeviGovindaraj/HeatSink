@@ -4,6 +4,7 @@ import { ErrorCard } from './components/ErrorCard';
 import { Footer } from './components/Footer';
 import { MapView } from './components/MapView';
 import { PlumePanel } from './components/PlumePanel';
+import { InsightsStrip } from './components/InsightsStrip';
 import { ReportPanel } from './components/ReportPanel';
 import {
   DEFAULT_SITE_PARAMS,
@@ -322,6 +323,7 @@ export function App() {
                 </button>
               </div>
             )}
+            {result && <InsightsStrip result={result} siteLabel={siteLabel} />}
             <div
               style={{
                 display: 'flex',
