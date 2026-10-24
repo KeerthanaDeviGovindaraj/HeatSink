@@ -149,6 +149,14 @@ export function SiteEditor({ params, onChange, outfall, onSelectPreset }: SiteEd
 
   const fraction = result ? braytonFraction(result.flowMGD) : 0;
 
+  // Which preset (if any) matches the current outfall, so the matching
+  // button can show as selected and the editor states the chosen site.
+  const activePreset = outfall
+    ? PRESET_SITES.find(
+        (p) => p.inputs.lat === outfall.lat && p.inputs.lon === outfall.lon,
+      ) ?? null
+    : null;
+
   return (
     <section
       data-testid="site-editor"
@@ -167,30 +175,54 @@ export function SiteEditor({ params, onChange, outfall, onSelectPreset }: SiteEd
           style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.8rem' }}
           aria-label="Preset sites"
         >
-          {PRESET_SITES.map((preset) => (
-            <button
-              key={preset.name}
-              type="button"
-              onClick={() => onSelectPreset(preset)}
-              style={{
-                fontSize: '0.75rem',
-                padding: '0.25rem 0.5rem',
-                border: '1px solid #90a4ae',
-                borderRadius: 999,
-                background: '#eceff1',
-                cursor: 'pointer',
-              }}
-            >
-              {preset.name}
-            </button>
-          ))}
+          {PRESET_SITES.map((preset) => {
+            const selected = activePreset?.name === preset.name;
+            return (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => onSelectPreset(preset)}
+                aria-pressed={selected}
+                style={{
+                  fontSize: '0.75rem',
+                  padding: '0.25rem 0.5rem',
+                  border: `1px solid ${selected ? '#0b3d5c' : '#90a4ae'}`,
+                  borderRadius: 999,
+                  background: selected ? '#0b3d5c' : '#eceff1',
+                  color: selected ? '#fff' : '#263238',
+                  fontWeight: selected ? 700 : 400,
+                  cursor: 'pointer',
+                }}
+              >
+                {selected ? `\u2713 ${preset.name}` : preset.name}
+              </button>
+            );
+          })}
         </div>
       )}
 
-      {!outfall && (
+      {outfall ? (
+        <p
+          role="status"
+          style={{
+            margin: '0 0 0.7rem',
+            padding: '0.4rem 0.6rem',
+            fontSize: '0.8rem',
+            background: '#e8f0f5',
+            border: '1px solid #b5cfde',
+            borderRadius: 6,
+            color: '#0b3d5c',
+          }}
+        >
+          <strong>Selected:</strong>{' '}
+          {activePreset
+            ? activePreset.name
+            : `Custom location (${outfall.lat.toFixed(3)}, ${outfall.lon.toFixed(3)})`}
+        </p>
+      ) : (
         <p role="note" style={{ margin: '0 0 0.6rem', fontSize: '0.8rem', color: '#78909c' }}>
-          No outfall placed yet — click the map to set a location. The flow below
-          depends only on facility settings.
+          No outfall placed yet — pick a preset above or click the map. The flow
+          below depends only on facility settings.
         </p>
       )}
 
