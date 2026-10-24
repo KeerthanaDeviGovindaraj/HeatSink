@@ -65,6 +65,8 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 16:13 | Add judge-facing InsightsStrip UI | MCP | At-a-glance verdict + 4 stat cards (newly-exceeded, reach, flow vs Brayton, coverage) from computed SiteResult; Playwright-verified live; build + 153 tests green; pushed 800c071 |
 | 16:18 | Map default framing to MA coast + merge PR #16, redeploy | MCP | Map opens on Cape Cod/Mass Bay (center 42,-70.4 zoom 9); PR #16 merged, deploy green; Playwright confirms insights strip + tiles live |
 | 16:22 | Show selected preset/site in SiteEditor | MCP | Active preset highlights (checkmark + aria-pressed) and editor shows "Selected: <site>"; Playwright-verified; build + 153 tests green; pushed 9e40948 |
+| 16:25 | Confirm PR #17 merge + deploy of selected-preset UI | MCP | Earlier merge/deploy was interrupted mid-run (still building); deploy now succeeded, Playwright confirms selected highlight + "Selected: <site>" live |
+| 16:32 | Fit MA coast, default preset, ~7km square cells, Nantucket Sound preset | MCP | fitBounds(animate:false) fixed a synthesized-click bug; cells now true-size squares; added low-coverage warm-cell preset (cov 0.416, lobster Insufficient data, maxSafe 83MW); window 2024-08-01/08 across 6 daily dates; 155 tests green; pushed 26b1ad4 |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:

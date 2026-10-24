@@ -54,6 +54,13 @@ const RING_LEVELS_C = [2, 1, 0.5, NEGLIGIBLE_C] as const;
 const MAX_COMPARE_SITES = 4;
 
 /**
+ * Preset selected on first load (R3.1) so the app opens on a real result
+ * instead of an empty map. Falls back gracefully if the preset list changes.
+ */
+const DEFAULT_PRESET =
+  PRESET_SITES.find((p) => p.name === 'Cape Cod Bay – central') ?? PRESET_SITES[0];
+
+/**
  * App shell. Loads the committed snapshots once (useSnapshots) and shares them:
  * the MapView draws the FIShBOT baseline and the Footer shows each source and its
  * `fetchedAt` (R1.1, R1.6). A baseline-load failure renders the ErrorCard instead
@@ -81,7 +88,11 @@ export function App() {
   );
 
   // Click-to-place state (R3.2): the current outfall and a transient land notice.
-  const [outfall, setOutfall] = useState<LatLon | null>(null);
+  const [outfall, setOutfall] = useState<LatLon | null>(
+    DEFAULT_PRESET
+      ? { lat: DEFAULT_PRESET.inputs.lat, lon: DEFAULT_PRESET.inputs.lon }
+      : null,
+  );
   const [landMessage, setLandMessage] = useState<string | null>(null);
 
   // Selected species id driving the map exceedance overlay (R5.4); null = none.
@@ -103,7 +114,16 @@ export function App() {
   // Facility parameters (R3.3 defaults), driven by the SiteEditor sliders. App
   // owns them so the full SiteInputs = outfall + params can be composed for
   // runSite.
-  const [siteParams, setSiteParams] = useState<SiteParams>(DEFAULT_SITE_PARAMS);
+  const [siteParams, setSiteParams] = useState<SiteParams>(
+    DEFAULT_PRESET
+      ? {
+          facilityMW: DEFAULT_PRESET.inputs.facilityMW,
+          deltaTC: DEFAULT_PRESET.inputs.deltaTC,
+          mixRatio: DEFAULT_PRESET.inputs.mixRatio,
+          heatFraction: DEFAULT_PRESET.inputs.heatFraction,
+        }
+      : DEFAULT_SITE_PARAMS,
+  );
 
   // Saved sites for the comparison table (R6.4): snapshots of computed results,
   // capped at MAX_COMPARE_SITES. `nextCustomSite` labels unnamed sites.
