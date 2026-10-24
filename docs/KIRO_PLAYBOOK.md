@@ -67,6 +67,8 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 16:22 | Show selected preset/site in SiteEditor | MCP | Active preset highlights (checkmark + aria-pressed) and editor shows "Selected: <site>"; Playwright-verified; build + 153 tests green; pushed 9e40948 |
 | 16:25 | Confirm PR #17 merge + deploy of selected-preset UI | MCP | Earlier merge/deploy was interrupted mid-run (still building); deploy now succeeded, Playwright confirms selected highlight + "Selected: <site>" live |
 | 16:32 | Fit MA coast, default preset, ~7km square cells, Nantucket Sound preset | MCP | fitBounds(animate:false) fixed a synthesized-click bug; cells now true-size squares; added low-coverage warm-cell preset (cov 0.416, lobster Insufficient data, maxSafe 83MW); window 2024-08-01/08 across 6 daily dates; 155 tests green; pushed 26b1ad4 |
+| 16:36 | Merge PR #18 to main + redeploy; verify live | MCP | Merged keerthana->main (fit bounds, default preset, square cells, Nantucket preset); deploy green; Playwright confirms default preset stable + 5 presets + square cells live |
+| 16:38 | Two-line header tagline + page title | other | Header now bold "Smart siting for seawater-cooled AI data centers." + sub-line; <title> updated to match; Playwright-verified; 155 tests green; pushed 82ca6b6 |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:
