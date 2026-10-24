@@ -36,6 +36,7 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | Time | Task | Kiro feature | What happened |
 |---|---|---|---|
 | | | | |
+| 12:23 | Scaffold Vite+React+TS app, deps, scripts, folders | scaffold | npm test/build/dev all pass; repaired corrupted scaffold files, .kiro not gitignored |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:

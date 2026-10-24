@@ -2,9 +2,9 @@
 
 Numbering matches TEAM_PLAN.md. A = Engine + Kiro (src/model, tests/model, .kiro, deploy, write-up). B = Data + UI + video (scripts, src/data, public/data, src/components, README, video). Stretch tasks marked (stretch).
 
-- [ ] 1. Scaffold (A)
-  - [ ] 1.1 Vite + React + TS strict; add react-leaflet, leaflet, recharts, vitest, fast-check, tsx. Scripts: dev, test, data, build. _NFR_
-  - [ ] 1.2 Create folders per structure.md; verify `.kiro/` not in .gitignore. _NFR_
+- [x] 1. Scaffold (A)
+  - [x] 1.1 Vite + React + TS strict; add react-leaflet, leaflet, recharts, vitest, fast-check, tsx. Scripts: dev, test, data, build. _NFR_
+  - [x] 1.2 Create folders per structure.md; verify `.kiro/` not in .gitignore. _NFR_
 
 - [ ] 2. Model core (A)
   - [ ] 2.0 Create `src/model/types.ts` exactly as in design.md; push before anything else. _R10_
