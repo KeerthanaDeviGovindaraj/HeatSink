@@ -119,8 +119,8 @@ tests/          property-based and unit tests
 
 ## Team
 
-Keerthana Devi Govindaraj 
-Khushi Lakhlani
+1) Keerthana Devi Govindaraj 
+2) Khushi Lakhlani
 
 ## License
 
