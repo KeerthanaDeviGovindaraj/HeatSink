@@ -40,6 +40,11 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 12:27 | Commit Task 1 scaffold | spec task | Committed scaffold (13 files) excluding mcp.json which held a leaked GitHub token |
 | 12:29 | Task 2.0 types.ts per design.md | spec task | Rewrote src/model/types.ts to exact design.md shapes (R10); tsc strict clean on the file |
 | 12:36 | Task 2.1 constants + units (+cToF); unblock build | spec task | Verified constants, added cToF, stubbed stale files with TODOs; npm run build + test green |
+| 12:40 | Commit + merge Tasks 2.0-2.1 to main | spec task | types.ts, constants, units on main (ba6b9fa); build+test green; mcp.json token excluded |
+| 12:49 | Task 2.2 property test P10 (units round trip) | property test | Added fast-check P10 test in tests/model/units.test.ts; npm test -- tests/model passes (R10.1) |
+| 12:53 | Task 2.3 thermal.ts computeThermal (bounds, mixing, L, reach) | spec task | Implemented pure computeThermal; added W_PER_MW; tsc + tests green; sanity 90 MW/5 C ~4.40 m3/s ~100 MGD, P11 reach <= R_REF_M (R3.3, R3.5, R4.5) |
+| 12:56 | Task 2.4 property tests P1/P5/P6/P11, 90 MW unit test, InputRangeError tests | property test | Added fast-check suite in tests/model/thermal.test.ts; 19 tests pass; P6 denormal counterexample triaged (generator fixed, property kept) (R10.1, R10.3, R10.4) |
+| 13:06 | Task 3 grid/plume/risk + runSite + property tests P2-P4,P7,P9,P12-P16 | spec task | Implemented pure grid.ts, plume.ts, risk.ts, runSite.ts and 10 fast-check properties; 31 model tests pass, tsc strict clean (R4.1-R4.3, R6.1-R6.2, R3.2, R10.1) |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:

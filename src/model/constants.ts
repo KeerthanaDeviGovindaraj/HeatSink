@@ -4,6 +4,9 @@
  * SI units internally. See .kiro/steering/thermal-model.md.
  */
 
+/** Watts per megawatt (W/MW). Used to convert facility power (MW) to SI watts. */
+export const W_PER_MW = 1e6;
+
 /** Seawater density (kg/m³). */
 export const RHO_KG_M3 = 1025;
 
