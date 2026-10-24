@@ -11,3 +11,8 @@ dist/
 
 # Vite dev/build cache
 .vite/
+
+# Folder-sync (iCloud/Dropbox) conflict duplicates like 'file 2.ts',
+# '@types/react 2'. These break the build; never track them.
+* [0-9].*
+* [0-9]
