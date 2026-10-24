@@ -9,8 +9,15 @@ import {
   SiteEditor,
   type SiteParams,
 } from './components/SiteEditor';
+import { SpeciesPicker } from './components/SpeciesPicker';
+import { CompareTable } from './components/CompareTable';
+import type { SavedSite } from './components/compare';
+import {
+  displayableSpecies,
+  toModelSpecies,
+} from './components/species';
 import { evaluateOutfallPlacement } from './components/placement';
-import type { PresetSite } from './model/presets';
+import { PRESET_SITES, type PresetSite } from './model/presets';
 import { plumeRings, type PlumeRing } from './model/plume';
 import { runSite } from './model/runSite';
 import { NEGLIGIBLE_C } from './model/constants';
@@ -19,9 +26,11 @@ import {
   OutfallOnLandError,
   type BaselineCell,
   type SiteResult,
+  type Species,
 } from './model/types';
 import { useSnapshots } from './data/useSnapshots';
 import type { SourceMetas } from './data/useSnapshots';
+import type { SpeciesEntry } from './data/types';
 import type { FeatureCollection } from 'geojson';
 import type { LatLon } from './model/grid';
 
@@ -31,6 +40,9 @@ import type { LatLon } from './model/grid';
  * outermost ring and coincides with the thermal reach.
  */
 const RING_LEVELS_C = [2, 1, 0.5, NEGLIGIBLE_C] as const;
+
+/** Maximum number of sites the comparison table holds (R6.4). */
+const MAX_COMPARE_SITES = 4;
 
 /**
  * App shell. Loads the committed snapshots once (useSnapshots) and shares them:
@@ -47,14 +59,47 @@ export function App() {
     snapshots.status === 'ready' ? snapshots.land : null;
   const cells: BaselineCell[] = snapshots.status === 'ready' ? snapshots.cells : [];
 
+  // Species for the threshold overlay (R5.1). Filter to the DISPLAY rule
+  // (R5.2/R5.3: non-empty source + finite threshold) so sourceless entries are
+  // hidden but unverified ones still show (with a badge in the picker). This is
+  // the display gate, deliberately NOT isUsableSpecies (which also requires
+  // verified === true and would hide every current entry).
+  const rawSpecies: SpeciesEntry[] =
+    snapshots.status === 'ready' ? snapshots.species : [];
+  const shownSpecies = useMemo(
+    () => displayableSpecies(rawSpecies),
+    [rawSpecies],
+  );
+
   // Click-to-place state (R3.2): the current outfall and a transient land notice.
   const [outfall, setOutfall] = useState<LatLon | null>(null);
   const [landMessage, setLandMessage] = useState<string | null>(null);
+
+  // Selected species id driving the map exceedance overlay (R5.4); null = none.
+  const [selectedSpeciesId, setSelectedSpeciesId] = useState<string | null>(null);
+
+  // Model-shaped species passed into runSite so per-species risks are computed.
+  // Adapting only the displayable entries guarantees finite thresholds.
+  const modelSpecies = useMemo<Species[]>(
+    () => shownSpecies.map(toModelSpecies),
+    [shownSpecies],
+  );
+
+  // The selected species entry (for the overlay threshold + legend), or null.
+  const selectedSpecies = useMemo(
+    () => shownSpecies.find((s) => s.id === selectedSpeciesId) ?? null,
+    [shownSpecies, selectedSpeciesId],
+  );
 
   // Facility parameters (R3.3 defaults), driven by the SiteEditor sliders. App
   // owns them so the full SiteInputs = outfall + params can be composed for
   // runSite.
   const [siteParams, setSiteParams] = useState<SiteParams>(DEFAULT_SITE_PARAMS);
+
+  // Saved sites for the comparison table (R6.4): snapshots of computed results,
+  // capped at MAX_COMPARE_SITES. `nextCustomSite` labels unnamed sites.
+  const [savedSites, setSavedSites] = useState<SavedSite[]>([]);
+  const [nextCustomSite, setNextCustomSite] = useState(1);
 
   // Run the model whenever the outfall, params, baseline cells, or land change
   // (R4.4). Memoized so dragging a slider doesn't recompute until a dependency
@@ -68,7 +113,7 @@ export function App() {
   } => {
     if (!outfall) return { result: null, rings: [], resultError: null };
     try {
-      const run = runSite({ ...outfall, ...siteParams }, cells, [], land);
+      const run = runSite({ ...outfall, ...siteParams }, cells, modelSpecies, land);
       return {
         result: run,
         rings: plumeRings(run.thermal, RING_LEVELS_C),
@@ -91,7 +136,22 @@ export function App() {
       }
       throw err;
     }
-  }, [outfall, siteParams, cells, land]);
+  }, [outfall, siteParams, cells, land, modelSpecies]);
+
+  // Exceedance overlay payload for MapView (R5.4): the current result points and
+  // the selected species threshold, or null when nothing is selected / no
+  // result yet. thresholdC is finite because selectedSpecies comes from the
+  // displayable set.
+  const exceedance = useMemo(() => {
+    if (!result || !selectedSpecies || selectedSpecies.thresholdC === null) {
+      return null;
+    }
+    return {
+      points: result.points,
+      thresholdC: selectedSpecies.thresholdC,
+      speciesName: selectedSpecies.name,
+    };
+  }, [result, selectedSpecies]);
 
   // Preset buttons set both location and facility params in one click (R3.1).
   const handleSelectPreset = useCallback((preset: PresetSite) => {
@@ -115,6 +175,31 @@ export function App() {
     },
     [land],
   );
+
+  // Snapshot the current result into the comparison table (R6.4). Disabled in
+  // the UI when there is no valid result or the table is already full, so this
+  // guards defensively and is otherwise a pure append. The label prefers the
+  // matching preset name, falling back to a numbered "Custom site N".
+  const handleSaveSite = useCallback(() => {
+    if (!result) return;
+    setSavedSites((prev) => {
+      if (prev.length >= MAX_COMPARE_SITES) return prev;
+      const { lat, lon } = result.inputs;
+      const preset = PRESET_SITES.find(
+        (p) => p.inputs.lat === lat && p.inputs.lon === lon,
+      );
+      const label = preset ? preset.name : `Custom site ${nextCustomSite}`;
+      if (!preset) setNextCustomSite((n) => n + 1);
+      const id = `site-${lat}-${lon}-${Date.now()}`;
+      return [...prev, { id, label, result }];
+    });
+  }, [result, nextCustomSite]);
+
+  const handleRemoveSite = useCallback((id: string) => {
+    setSavedSites((prev) => prev.filter((s) => s.id !== id));
+  }, []);
+
+  const compareFull = savedSites.length >= MAX_COMPARE_SITES;
 
   return (
     <>
@@ -189,6 +274,7 @@ export function App() {
                   outfall={outfall}
                   onMapClick={handleMapClick}
                   rings={rings}
+                  exceedance={exceedance}
                 />
               </div>
               <div
@@ -222,7 +308,53 @@ export function App() {
                   </div>
                 )}
                 {result && <PlumePanel result={result} />}
+                {result && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={handleSaveSite}
+                      disabled={compareFull}
+                      style={{
+                        width: '100%',
+                        padding: '0.55rem 0.8rem',
+                        background: compareFull ? '#cfd8dc' : '#0b3d5c',
+                        color: compareFull ? '#607d8b' : '#fff',
+                        border: 'none',
+                        borderRadius: 6,
+                        cursor: compareFull ? 'not-allowed' : 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Save site to compare
+                    </button>
+                    <p
+                      style={{
+                        margin: '0.3rem 0 0',
+                        fontSize: '0.72rem',
+                        color: compareFull ? '#c62828' : '#78909c',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {compareFull
+                        ? `Comparison is full (${MAX_COMPARE_SITES} sites) — remove one to add another.`
+                        : `${savedSites.length} of ${MAX_COMPARE_SITES} sites saved.`}
+                    </p>
+                  </div>
+                )}
+                <SpeciesPicker
+                  species={shownSpecies}
+                  selectedId={selectedSpeciesId}
+                  onSelect={setSelectedSpeciesId}
+                />
               </div>
+            </div>
+            <div style={{ marginTop: '1rem' }}>
+              <CompareTable
+                sites={savedSites}
+                species={shownSpecies}
+                onRemove={handleRemoveSite}
+              />
             </div>
           </>
         )}
