@@ -57,6 +57,7 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 15:38 | Commit + push spec v2.2, open PR #13 to main | spec task | Pushed 81258c0 to keerthana; PR #13 (keerthana->main) open and MERGEABLE; excluded mcp.json (leaked PAT) |
 | 15:44 | Tasks 11.1-11.2: maxSafeMW engine + P17/P18 property tests | property test | maxSafe.ts binary search reusing sample points; P17/P18 pass (null case + facilityMW independence); 153 tests green; pushed c50fd10 |
 | 15:48 | PR #14 (maxSafe), submission-rules audit, 10.4 write-up | spec task | Opened PR #14; audited vs Hackachusetts rules (repo/.kiro/PBT/license OK, video 10.3 still TODO); wrote docs/HOW_KIRO_WAS_USED.md, pushed 699250a |
+| 15:55 | README track + write-up link, mark 10.4, merge PR #13/#14, clean 38 dup files | other | README track->ClimaTech & Clean Energy + write-up link; 10.4 done; PRs #13/#14 merged; removed 38 untracked " 2." sync dupes; 153 tests green; pushed c2e799f |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:
