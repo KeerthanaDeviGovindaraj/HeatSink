@@ -1,10 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { computeThermal } from '../../src/model/thermal';
-import { excessAt, impacts } from '../../src/model/plume';
+import { impacts } from '../../src/model/plume';
 import { coverage, plumeAreaKm2, speciesRisk } from '../../src/model/risk';
 import {
-  AREA_SCALE_KM2,
   BOUNDS,
   NEGLIGIBLE_C,
   POINT_AREA_KM2,
