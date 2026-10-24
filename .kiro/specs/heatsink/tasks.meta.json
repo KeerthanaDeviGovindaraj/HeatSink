@@ -405,6 +405,20 @@
         "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
         "timestamp": 1792869380617
       }
+    ],
+    "11.1 (A) src/model/maxSafe.ts: maxSafeMW binary search reusing sample points. _R11.1–R11.4_": [
+      {
+        "executionId": "7fc806c7-c294-4482-9014-d771f498b657",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792870791865
+      }
+    ],
+    "11.2 (A) Property tests P17, P18. _R10.20, R10.21_": [
+      {
+        "executionId": "7fc806c7-c294-4482-9014-d771f498b657",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792870923179
+      }
     ]
   }
 }
