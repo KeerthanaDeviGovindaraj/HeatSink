@@ -23,6 +23,8 @@ import 'leaflet/dist/leaflet.css';
 import type { LatLon } from '../model/grid';
 import type { PlumeRing } from '../model/plume';
 import type { OceanRow } from '../data/types';
+import type { PointImpact } from '../model/types';
+import { classifyPoint } from './exceedance';
 import {
   NO_DATA_COLOR,
   colorForTemp,
@@ -51,6 +53,17 @@ const OUTFALL_COLOR = '#d81b60';
  */
 const RING_COLOR = '#e65100';
 
+/**
+ * Exceedance-overlay colors (R5.4): NEWLY exceeded points are drawn as solid
+ * filled markers in a distinct hue; ALREADY exceeded points are drawn hollow
+ * (outlined, no fill) in a different hue so the two read as visually distinct
+ * even where they overlap the plume rings (design.md: "solid = newly, hatched =
+ * already"). Chosen from a colorblind-safe pairing (magenta vs teal) that also
+ * contrasts with the blue→red baseline ramp and the orange plume rings.
+ */
+const NEWLY_COLOR = '#d01c8b'; // solid magenta — the discharge pushes past T*
+const ALREADY_COLOR = '#018571'; // outlined teal — warm before the plume
+
 /** Fill opacity for a ring, hotter (inner) rings more opaque. Index 0 = hottest. */
 function ringFillOpacity(index: number, total: number): number {
   // 0.28 for the innermost ring down to ~0.06 for the outermost.
@@ -74,6 +87,16 @@ export interface MapViewProps {
    * omitted draws no rings (R4.4).
    */
   rings?: readonly PlumeRing[];
+  /**
+   * Species exceedance overlay (R5.4). When a species is selected, pass the
+   * current result points and the selected threshold; the map styles NEWLY
+   * exceeded points distinctly from ALREADY exceeded ones. Null/omitted draws
+   * no overlay. MapView stays presentational — classification uses the shared
+   * pure `classifyPoint` helper.
+   */
+  exceedance?:
+    | { points: PointImpact[]; thresholdC: number; speciesName?: string | undefined }
+    | null;
 }
 
 /**
@@ -89,11 +112,27 @@ function ClickCapture({ onClick }: { onClick?: ((latlng: LatLon) => void) | unde
   return null;
 }
 
-export function MapView({ rows, window, outfall, onMapClick, rings }: MapViewProps) {
+export function MapView({
+  rows,
+  window,
+  outfall,
+  onMapClick,
+  rings,
+  exceedance,
+}: MapViewProps) {
   // Draw rings largest-first so the hotter, smaller rings render on top. Sort a
   // copy to avoid mutating the caller's array. `order` gives each ring its
   // hot→cold index for fill opacity (0 = hottest/smallest radius).
   const sortedRings = rings ? [...rings].sort((a, b) => b.radiusM - a.radiusM) : [];
+
+  // Exceedance overlay points (R5.4): classify each result point against the
+  // selected threshold with the shared pure helper, keeping only the points
+  // that are newly or already exceeded. Drawn only when a species is selected.
+  const overlayPoints = exceedance
+    ? exceedance.points
+        .map((p) => ({ point: p, kind: classifyPoint(p, exceedance.thresholdC) }))
+        .filter((e) => e.kind !== 'none')
+    : [];
 
   return (
     <div data-testid="map-view" style={{ position: 'relative' }}>
@@ -178,9 +217,127 @@ export function MapView({ rows, window, outfall, onMapClick, rings }: MapViewPro
             </CircleMarker>
           );
         })}
+        {/* Exceedance overlay (R5.4): solid = newly, outlined = already. */}
+        {overlayPoints.map(({ point, kind }, i) => {
+          const newly = kind === 'newly';
+          return (
+            <CircleMarker
+              key={`exc-${point.lat},${point.lon},${i}`}
+              center={[point.lat, point.lon]}
+              radius={5}
+              pathOptions={
+                newly
+                  ? {
+                      color: NEWLY_COLOR,
+                      weight: 1,
+                      fillColor: NEWLY_COLOR,
+                      fillOpacity: 0.9,
+                    }
+                  : {
+                      color: ALREADY_COLOR,
+                      weight: 2,
+                      fillColor: ALREADY_COLOR,
+                      fillOpacity: 0,
+                      dashArray: '2 2',
+                    }
+              }
+            >
+              <Tooltip>
+                <strong>
+                  {newly ? 'Newly exceeded' : 'Already exceeded'} (MODELED)
+                </strong>
+                <br />
+                threshold {exceedance?.thresholdC} °C
+                {point.baselineC !== null && (
+                  <>
+                    <br />
+                    baseline {point.baselineC.toFixed(1)} °C
+                  </>
+                )}
+                {point.combinedC !== null && (
+                  <>
+                    <br />
+                    combined {point.combinedC.toFixed(1)} °C
+                  </>
+                )}
+              </Tooltip>
+            </CircleMarker>
+          );
+        })}
       </MapContainer>
       <Legend label={BASELINE_LABEL} />
       {outfall && sortedRings.length > 0 && <RingLegend rings={sortedRings} />}
+      {exceedance && (
+        <ExceedanceLegend
+          speciesName={exceedance.speciesName}
+          thresholdC={exceedance.thresholdC}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Legend for the species exceedance overlay (R5.4): the solid "newly exceeded"
+ * swatch and the outlined "already exceeded" swatch, with the selected species
+ * and threshold. Positioned top-left so it does not overlap the ring legend
+ * (top-right) or the color legend (bottom-right).
+ */
+function ExceedanceLegend({
+  speciesName,
+  thresholdC,
+}: {
+  speciesName?: string | undefined;
+  thresholdC: number;
+}) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 12,
+        left: 12,
+        zIndex: 1000,
+        background: 'rgba(255,255,255,0.95)',
+        padding: '0.5rem 0.6rem',
+        borderRadius: 6,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+        font: '12px/1.4 system-ui, sans-serif',
+        maxWidth: 200,
+      }}
+    >
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>
+        {speciesName ?? 'Species'} threshold{' '}
+        <span style={{ color: '#607d8b', fontWeight: 600 }}>· MODELED</span>
+      </div>
+      <div style={{ color: '#455a64', marginBottom: 4 }}>{thresholdC} °C</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span
+          style={{
+            display: 'inline-block',
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            background: NEWLY_COLOR,
+            border: `1px solid ${NEWLY_COLOR}`,
+            flex: '0 0 auto',
+          }}
+        />
+        <span>Newly exceeded</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+        <span
+          style={{
+            display: 'inline-block',
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            background: 'transparent',
+            border: `2px dashed ${ALREADY_COLOR}`,
+            flex: '0 0 auto',
+          }}
+        />
+        <span>Already exceeded</span>
+      </div>
     </div>
   );
 }

@@ -9,6 +9,11 @@ import {
   SiteEditor,
   type SiteParams,
 } from './components/SiteEditor';
+import { SpeciesPicker } from './components/SpeciesPicker';
+import {
+  displayableSpecies,
+  toModelSpecies,
+} from './components/species';
 import { evaluateOutfallPlacement } from './components/placement';
 import type { PresetSite } from './model/presets';
 import { plumeRings, type PlumeRing } from './model/plume';
@@ -19,9 +24,11 @@ import {
   OutfallOnLandError,
   type BaselineCell,
   type SiteResult,
+  type Species,
 } from './model/types';
 import { useSnapshots } from './data/useSnapshots';
 import type { SourceMetas } from './data/useSnapshots';
+import type { SpeciesEntry } from './data/types';
 import type { FeatureCollection } from 'geojson';
 import type { LatLon } from './model/grid';
 
@@ -47,9 +54,37 @@ export function App() {
     snapshots.status === 'ready' ? snapshots.land : null;
   const cells: BaselineCell[] = snapshots.status === 'ready' ? snapshots.cells : [];
 
+  // Species for the threshold overlay (R5.1). Filter to the DISPLAY rule
+  // (R5.2/R5.3: non-empty source + finite threshold) so sourceless entries are
+  // hidden but unverified ones still show (with a badge in the picker). This is
+  // the display gate, deliberately NOT isUsableSpecies (which also requires
+  // verified === true and would hide every current entry).
+  const rawSpecies: SpeciesEntry[] =
+    snapshots.status === 'ready' ? snapshots.species : [];
+  const shownSpecies = useMemo(
+    () => displayableSpecies(rawSpecies),
+    [rawSpecies],
+  );
+
   // Click-to-place state (R3.2): the current outfall and a transient land notice.
   const [outfall, setOutfall] = useState<LatLon | null>(null);
   const [landMessage, setLandMessage] = useState<string | null>(null);
+
+  // Selected species id driving the map exceedance overlay (R5.4); null = none.
+  const [selectedSpeciesId, setSelectedSpeciesId] = useState<string | null>(null);
+
+  // Model-shaped species passed into runSite so per-species risks are computed.
+  // Adapting only the displayable entries guarantees finite thresholds.
+  const modelSpecies = useMemo<Species[]>(
+    () => shownSpecies.map(toModelSpecies),
+    [shownSpecies],
+  );
+
+  // The selected species entry (for the overlay threshold + legend), or null.
+  const selectedSpecies = useMemo(
+    () => shownSpecies.find((s) => s.id === selectedSpeciesId) ?? null,
+    [shownSpecies, selectedSpeciesId],
+  );
 
   // Facility parameters (R3.3 defaults), driven by the SiteEditor sliders. App
   // owns them so the full SiteInputs = outfall + params can be composed for
@@ -68,7 +103,7 @@ export function App() {
   } => {
     if (!outfall) return { result: null, rings: [], resultError: null };
     try {
-      const run = runSite({ ...outfall, ...siteParams }, cells, [], land);
+      const run = runSite({ ...outfall, ...siteParams }, cells, modelSpecies, land);
       return {
         result: run,
         rings: plumeRings(run.thermal, RING_LEVELS_C),
@@ -91,7 +126,22 @@ export function App() {
       }
       throw err;
     }
-  }, [outfall, siteParams, cells, land]);
+  }, [outfall, siteParams, cells, land, modelSpecies]);
+
+  // Exceedance overlay payload for MapView (R5.4): the current result points and
+  // the selected species threshold, or null when nothing is selected / no
+  // result yet. thresholdC is finite because selectedSpecies comes from the
+  // displayable set.
+  const exceedance = useMemo(() => {
+    if (!result || !selectedSpecies || selectedSpecies.thresholdC === null) {
+      return null;
+    }
+    return {
+      points: result.points,
+      thresholdC: selectedSpecies.thresholdC,
+      speciesName: selectedSpecies.name,
+    };
+  }, [result, selectedSpecies]);
 
   // Preset buttons set both location and facility params in one click (R3.1).
   const handleSelectPreset = useCallback((preset: PresetSite) => {
@@ -189,6 +239,7 @@ export function App() {
                   outfall={outfall}
                   onMapClick={handleMapClick}
                   rings={rings}
+                  exceedance={exceedance}
                 />
               </div>
               <div
@@ -222,6 +273,11 @@ export function App() {
                   </div>
                 )}
                 {result && <PlumePanel result={result} />}
+                <SpeciesPicker
+                  species={shownSpecies}
+                  selectedId={selectedSpeciesId}
+                  onSelect={setSelectedSpeciesId}
+                />
               </div>
             </div>
           </>
