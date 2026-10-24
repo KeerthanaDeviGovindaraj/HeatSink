@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Snapshot check on save",
+      "trigger": "PostFileSave",
+      "description": "Runs data validators whenever a committed snapshot in public/data changes, so bad data never reaches the demo.",
+      "matcher": "public/data/.*\\.(json|geojson)$",
+      "action": {
+        "type": "command",
+        "command": "npm test -- tests/data"
+      }
+    }
+  ]
+}
