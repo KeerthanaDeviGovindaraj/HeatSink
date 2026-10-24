@@ -3,6 +3,8 @@ dist/
 *.tsbuildinfo
 .env
 .env.*
+# Keep the documented template (no secrets) tracked.
+!.env.example
 *.log
 .DS_Store
 # Do NOT ignore .kiro/ — required for judging.
