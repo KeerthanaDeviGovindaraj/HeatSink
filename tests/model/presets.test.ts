@@ -55,7 +55,7 @@ describe('preset sites (R3.1, R6.2)', () => {
   // single far-flung observation; it INTENTIONALLY has coverage below
   // MIN_COVERAGE so the UI shows "Insufficient data" (product honesty rule).
   // It is exempt from the coverage floor below and checked separately.
-  const LOW_COVERAGE_PRESET = 'Nantucket Sound (warm cell, low coverage)';
+  const LOW_COVERAGE_PRESET = 'Nantucket Sound (warm water)';
 
   // Species do not affect coverage, so an empty species list is sufficient here.
   for (const preset of PRESET_SITES) {

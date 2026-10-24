@@ -18,6 +18,14 @@ export interface InsightsStripProps {
   result: SiteResult;
   /** Human label for the site (preset name or "Custom site"). */
   siteLabel: string;
+  /**
+   * Largest-safe-size result from the model's maxSafeMW for the current
+   * site/settings/selected species (R11), or null before an outfall is
+   * placed. `maxMW` is the biggest integer MW where every selected species
+   * stays Low (500 shown as "500+"), or null when even 1 MW is not Low;
+   * `coverage` is the plume coverage at that size.
+   */
+  maxSafe?: { maxMW: number | null; coverage: number } | null;
 }
 
 /** Brayton Point historical peak once-through withdrawal (~1 billion gal/day). */
@@ -56,7 +64,7 @@ function fmtKm2(v: number): string {
   return `${v.toFixed(2)} km²`;
 }
 
-export function InsightsStrip({ result, siteLabel }: InsightsStripProps) {
+export function InsightsStrip({ result, siteLabel, maxSafe }: InsightsStripProps) {
   const { risks, plumeAreaKm2, coverage, thermal } = result;
   const headline = headlineRisk(risks);
   const level: Level = headline?.level ?? 'Low';
@@ -64,6 +72,25 @@ export function InsightsStrip({ result, siteLabel }: InsightsStripProps) {
   const newlyKm2 = totalNewlyExceededKm2(risks);
   const lowConfidence = coverage < MIN_COVERAGE;
   const braytonPct = Math.round((thermal.flowMGD / BRAYTON_PEAK_MGD) * 100);
+
+  // Largest safe size (R11), showing exactly what maxSafeMW returns:
+  //  - coverage below MIN_COVERAGE  → "Insufficient data"
+  //  - maxMW === null               → "No size" (even 1 MW is not Low)
+  //  - maxMW === 500 (upper bound)  → "500+ MW"
+  //  - otherwise                    → "<n> MW"
+  const maxSafeDisplay = (() => {
+    if (!maxSafe) return { value: '—', note: 'place a site to compute' };
+    if (maxSafe.coverage < MIN_COVERAGE) {
+      return { value: 'Insufficient data', note: 'not enough baseline data to size' };
+    }
+    if (maxSafe.maxMW === null) {
+      return { value: 'No size', note: 'even 1 MW is not Low impact here' };
+    }
+    if (maxSafe.maxMW >= 500) {
+      return { value: '500+ MW', note: 'Low across the full size range' };
+    }
+    return { value: `${maxSafe.maxMW} MW`, note: `n+1 MW would exceed a limit` };
+  })();
 
   // One-line plain-English verdict a judge can read in two seconds.
   const verdict = (() => {
@@ -163,7 +190,16 @@ export function InsightsStrip({ result, siteLabel }: InsightsStripProps) {
           tag="MEASURED"
           warn={lowConfidence}
         />
+        <StatCard
+          label="Largest safe size"
+          value={maxSafeDisplay.value}
+          note={maxSafeDisplay.note}
+          tag="MODELED"
+        />
       </div>
+      <p style={{ margin: '0.6rem 0 0', fontSize: '0.74rem', color: '#607d8b', lineHeight: 1.4 }}>
+        Biggest facility at this site where every species stays Low.
+      </p>
     </section>
   );
 }
