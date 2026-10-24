@@ -15,11 +15,14 @@ import {
   Circle,
   CircleMarker,
   MapContainer,
+  Rectangle,
   TileLayer,
   Tooltip,
+  useMap,
   useMapEvents,
 } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useEffect, useRef } from 'react';
 import type { LatLon } from '../model/grid';
 import type { PlumeRing } from '../model/plume';
 import type { OceanRow, Station } from '../data/types';
@@ -41,6 +44,45 @@ import { layerLabel } from './layerLabels';
 // Northeast (R1.1).
 const MAP_CENTER: [number, number] = [42.0, -70.4];
 const MAP_ZOOM = 9;
+// On load, frame the whole Massachusetts coast study area (R1.1). fitBounds
+// to these SW/NE corners so every baseline cell is in view regardless of
+// container size; the center/zoom above are the initial state before fit.
+const MA_COAST_BOUNDS: [[number, number], [number, number]] = [
+  [41.2, -71.2],
+  [42.8, -69.8],
+];
+
+// FIShBOT gridded cells are ~7 km on a side; draw each as a true-size square
+// (half-side 3.5 km) centered on the cell, rather than a fixed-pixel circle,
+// so the map honestly conveys the ~7 km resolution (product honesty rule).
+const CELL_SIDE_M = 7000;
+const CELL_HALF_M = CELL_SIDE_M / 2;
+const M_PER_DEG_LAT = 111_320;
+
+/** SW/NE corners of a ~7 km square centered on (lat, lon), in degrees. */
+function cellBounds(lat: number, lon: number): [[number, number], [number, number]] {
+  const dLat = CELL_HALF_M / M_PER_DEG_LAT;
+  const dLon = CELL_HALF_M / (M_PER_DEG_LAT * Math.cos((lat * Math.PI) / 180));
+  return [
+    [lat - dLat, lon - dLon],
+    [lat + dLat, lon + dLon],
+  ];
+}
+
+/**
+ * Fits the map to the MA coast bounds once on mount (R1.1). Lives inside
+ * <MapContainer> so useMap can access the Leaflet instance.
+ */
+function FitMassachusetts() {
+  const map = useMap();
+  const done = useRef(false);
+  useEffect(() => {
+    if (done.current) return;
+    done.current = true;
+    map.fitBounds(MA_COAST_BOUNDS, { padding: [8, 8], animate: false });
+  }, [map]);
+  return null;
+}
 const OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const OSM_ATTRIBUTION = '&copy; OpenStreetMap contributors';
 
@@ -162,6 +204,7 @@ export function MapView({
         scrollWheelZoom
       >
         <TileLayer url={OSM_TILE_URL} attribution={OSM_ATTRIBUTION} />
+        <FitMassachusetts />
         <ClickCapture onClick={onMapClick} />
         {outfall &&
           sortedRings.map((ring, i) => {
@@ -210,14 +253,13 @@ export function MapView({
         {rows.map((row, i) => {
           const noData = isNoData(row.tempC);
           return (
-            <CircleMarker
+            <Rectangle
               key={`${row.lat},${row.lon},${i}`}
-              center={[row.lat, row.lon]}
-              radius={8}
+              bounds={cellBounds(row.lat, row.lon)}
               pathOptions={
                 noData
-                  ? { color: NO_DATA_COLOR, weight: 2, fillOpacity: 0, dashArray: '3 3' }
-                  : { color: '#222', weight: 1, fillColor: colorForTemp(row.tempC), fillOpacity: 0.85 }
+                  ? { color: NO_DATA_COLOR, weight: 1.5, fillOpacity: 0, dashArray: '3 3' }
+                  : { color: '#37474f', weight: 0.75, fillColor: colorForTemp(row.tempC), fillOpacity: 0.7 }
               }
             >
               <Tooltip>
@@ -233,7 +275,7 @@ export function MapView({
                   Window: {window}
                 </div>
               </Tooltip>
-            </CircleMarker>
+            </Rectangle>
           );
         })}
         {/* Exceedance overlay (R5.4): solid = newly, outlined = already. */}

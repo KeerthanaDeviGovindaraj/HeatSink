@@ -36,8 +36,8 @@ const land = readJson<FeatureCollection>('ma-land.geojson');
 const cells: BaselineCell[] = baselineCellsFromSnapshot(snapshot);
 
 describe('preset sites (R3.1, R6.2)', () => {
-  it('offers exactly four presets with the default facility parameters (R3.1)', () => {
-    expect(PRESET_SITES).toHaveLength(4);
+  it('offers exactly five presets with the default facility parameters (R3.1)', () => {
+    expect(PRESET_SITES).toHaveLength(5);
     for (const { inputs } of PRESET_SITES) {
       expect(inputs.facilityMW).toBe(100);
       expect(inputs.deltaTC).toBe(4);
@@ -51,9 +51,16 @@ describe('preset sites (R3.1, R6.2)', () => {
     expect(new Set(keys).size).toBe(PRESET_SITES.length);
   });
 
+  // The Nantucket Sound preset is centered on the lone warm ≥19 °C cell, a
+  // single far-flung observation; it INTENTIONALLY has coverage below
+  // MIN_COVERAGE so the UI shows "Insufficient data" (product honesty rule).
+  // It is exempt from the coverage floor below and checked separately.
+  const LOW_COVERAGE_PRESET = 'Nantucket Sound (warm cell, low coverage)';
+
   // Species do not affect coverage, so an empty species list is sufficient here.
   for (const preset of PRESET_SITES) {
-    it(`"${preset.name}" is in water and has coverage ≥ MIN_COVERAGE (R6.2)`, () => {
+    const exemptLowCoverage = preset.name === LOW_COVERAGE_PRESET;
+    it(`"${preset.name}" is in water${exemptLowCoverage ? '' : ' and has coverage ≥ MIN_COVERAGE'} (R6.2)`, () => {
       let result: SiteResult | undefined;
       // Not on land → runSite must not throw OutfallOnLandError (R3.1/R3.2).
       expect(() => {
@@ -62,9 +69,22 @@ describe('preset sites (R3.1, R6.2)', () => {
 
       expect(result).toBeDefined();
       const coverage = result!.coverage;
-      expect(coverage).toBeGreaterThanOrEqual(MIN_COVERAGE);
       // Coverage is always a fraction in [0, 1].
+      expect(coverage).toBeGreaterThanOrEqual(0);
       expect(coverage).toBeLessThanOrEqual(1);
+      if (!exemptLowCoverage) {
+        // Every demo preset except the deliberate low-coverage one scores.
+        expect(coverage).toBeGreaterThanOrEqual(MIN_COVERAGE);
+      }
     });
   }
+
+  it(`"${LOW_COVERAGE_PRESET}" is intentionally below MIN_COVERAGE (honesty demo)`, () => {
+    const preset = PRESET_SITES.find((p) => p.name === LOW_COVERAGE_PRESET);
+    expect(preset).toBeDefined();
+    const result = runSite(preset!.inputs, cells, [], land);
+    // Confirms the warm-cell site really does read "Insufficient data": its
+    // plume coverage sits below the floor, so the UI greys the score out.
+    expect(result.coverage).toBeLessThan(MIN_COVERAGE);
+  });
 });
