@@ -54,6 +54,7 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 15:31 | Commit + push tracker/playbook progress | spec task | Pushed 920d05f to keerthana (tasks.md, tasks.meta.json, playbook); excluded mcp.json (leaked PAT) |
 | 15:35 | Merge main into keerthana to catch up branch | other | Merged origin/main (29 commits) into keerthana, no conflicts; tsc + 150 tests green; pushed 69b1480 |
 | 15:37 | Update spec to v2.2 (maxSafeMW, share link, print brief) | spec task | Added-only edits to thermal-model, requirements (R11-13, P17-18+22-23), design, tasks (sections 11-13); no existing content/checkmarks changed |
+| 15:38 | Commit + push spec v2.2, open PR #13 to main | spec task | Pushed 81258c0 to keerthana; PR #13 (keerthana->main) open and MERGEABLE; excluded mcp.json (leaked PAT) |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:

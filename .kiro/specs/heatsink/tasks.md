@@ -50,8 +50,8 @@ Numbering matches TEAM_PLAN.md. A = Engine + Kiro (src/model, tests/model, .kiro
   - [x] 9.2 (stretch) Diadromous stations layer and reach flag. _R9_
 
 - [ ] 11. Largest safe size (A, then B for UI)
-  - [ ] 11.1 (A) src/model/maxSafe.ts: maxSafeMW binary search reusing sample points. _R11.1–R11.4_
-  - [ ] 11.2 (A) Property tests P17, P18. _R10.20, R10.21_
+  - [x] 11.1 (A) src/model/maxSafe.ts: maxSafeMW binary search reusing sample points. _R11.1–R11.4_
+  - [x] 11.2 (A) Property tests P17, P18. _R10.20, R10.21_
   - [ ] 11.3 (B) UI: result line in SiteEditor with "Use this size", column in CompareTable. _R11.1–R11.7_
 
 - [ ] 12. Shareable link (B)
