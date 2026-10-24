@@ -1,6 +1,6 @@
 # HeatSink 🌊
 
-**Where should AI's heat go?** A screening tool that shows where a seawater-cooled AI data center on the Massachusetts coast would push coastal habitat past species temperature limits, and where it would not.
+**Smart siting for seawater-cooled AI data centers.** HeatSink shows where a seawater-cooled AI data center on the Massachusetts coast would push coastal habitat past species temperature limits — and where it would not — so you can find the least-harmful site *before* it's built.
 
 > ⚠️ **Screening tool only.** HeatSink is not a hydrodynamic model or a permit decision. It helps answer "which sites deserve a closer look?"
 
@@ -30,13 +30,17 @@ But seawater cooling returns the heat to the ocean, typically several degrees wa
 
 ## What it does
 
-1. **Baseline map:** coastal bottom temperatures from fishing-fleet data (FIShBOT grid, eMOLT points), labeled MEASURED, with "no data" shown honestly (never interpolated).
-2. **Place a hypothetical data center:** 4 preset coastal sites or click-to-place in the water; set facility size (MW), discharge temperature rise, pre-mixing ratio, and heat fraction.
-3. **Flow and scale:** heat to water, required seawater flow (m³/s and million gallons/day), compared with Brayton Point's peak.
-4. **Screening plume:** warm-water rings on the map with plume area and reach.
-5. **Species check:** area *newly* pushed past cited thermal limits for American lobster and winter flounder, shown separately from area already above the limit at baseline.
-6. **Compare sites:** up to 4 sites ranked from lowest to highest risk, including "Low impact at screening level" when that's the honest answer.
-7. **Shareable summary:** a one-page plain-English report (copy or Markdown download) with assumptions, sources, and the screening disclaimer.
+1. **Baseline map:** coastal bottom temperatures from fishing-fleet data (FIShBOT grid, eMOLT points), drawn as **true-size ~7 km squares** (honest about the data's resolution), labeled MEASURED, with "no data" shown as empty dashed cells (never interpolated).
+2. **Place a hypothetical data center:** 5 preset coastal sites (one selected by default on load) or click-to-place in the water; the active site is highlighted and named. Set facility size (MW), discharge temperature rise, pre-mixing ratio, and heat fraction with bounded sliders.
+3. **At-a-glance verdict:** an insights strip turns the result into a plain-English sentence plus color-coded cards — risk level, habitat newly pushed past a limit, plume reach, cooling flow vs. Brayton Point, and data coverage — each tagged MEASURED or MODELED.
+4. **Flow and scale:** heat to water, required seawater flow (m³/s and million gallons/day), compared with the old Brayton Point power plant's peak (~1 billion gal/day).
+5. **Screening plume:** warm-water rings on the map with plume area and reach, and a shallow-water breakdown (bottom reach vs. surface-only in deep water).
+6. **Species check:** area *newly* pushed past cited thermal limits for American lobster (20 °C) and winter flounder (22 °C), shown distinctly from area already above the limit at baseline (solid = newly, hatched = already).
+7. **Largest safe size:** for a site and its settings, the biggest plant (MW) that keeps every selected species at Low impact — a planning answer, not just a risk score.
+8. **Compare sites:** up to 4 saved sites ranked lowest-to-highest risk, including "Low impact at screening level" and "Insufficient data" when those are the honest answers.
+9. **Cumulative mode (stretch):** add several saved sites' plumes together on one shared grid to see a combined footprint.
+10. **River-mouth flag (stretch):** overlay diadromous fish sampling stations and flag any within a site's plume reach.
+11. **Shareable summary:** a one-page plain-English report (copy or Markdown download) with assumptions, sources, and the screening disclaimer.
 
 ## Screenshots
 
@@ -74,10 +78,11 @@ All equations and constants live in [`.kiro/steering/thermal-model.md`](.kiro/st
 - **Fine sampling grid:** 250 m points within 20 km of the outfall; land points removed; each point uses the baseline of the ~7 km FIShBOT cell it falls in.
 - **Shallow-water rule:** warm discharge floats, so bottom heating is applied only in water ≤ 20 m deep; deeper points are marked "surface plume only."
 - **Score (0–100)** from the area newly pushed past a species limit; levels Low / Medium / High, or "Insufficient data" when less than half the plume has baseline data.
+- **Largest safe size** binary-searches facility size (1–500 MW) for the biggest plant that keeps every selected species at Low impact, relying on the proven "more heat never lowers the score" property.
 
 ### Correctness
 
-The model is covered by **16 property-based tests** (fast-check), each tied to an EARS requirement (Requirement 10 in [`requirements.md`](.kiro/specs/heatsink/requirements.md)). Examples: heat in equals heat out; the plume is never colder than the surrounding water; more heat never lowers the score; no sample point lies on land.
+The model is covered by **18 property-based tests** (fast-check), each tied to an EARS requirement (Requirement 10 in [`requirements.md`](.kiro/specs/heatsink/requirements.md)). Examples: heat in equals heat out; the plume is never colder than the surrounding water; more heat never lowers the score; no sample point lies on land; and the largest-safe-size search is correct and never depends on the current slider value. The full suite (model + data + component) is 155 tests.
 
 ### Assumptions and limits (shown in the app at all times)
 
@@ -99,11 +104,11 @@ Radially symmetric plume, no tides or currents, steady state, bottom effect only
 
 The full write-up is in [`docs/KIRO_PLAYBOOK.md`](docs/KIRO_PLAYBOOK.md). In short:
 
-- **Spec-driven development:** requirements → design → tasks in [`.kiro/specs/heatsink/`](.kiro/specs/heatsink/). The spec went through real revisions: v1 → v2 fixed a score formula where more heat could *lower* the risk score; v2 → v2.1 added a land mask and a negligible-first rule after a counterexample to an area property.
+- **Spec-driven development:** requirements → design → tasks in [`.kiro/specs/heatsink/`](.kiro/specs/heatsink/). The spec went through real, documented revisions: v1 → v2 fixed a score formula where more heat could *lower* the risk score; v2 → v2.1 added a land mask and a negligible-first rule after a counterexample to an area property; v2.1 → v2.2 added the largest-safe-size search (plus share-link and print-brief requirements) with two new properties.
 - **Steering:** always-on files for product honesty rules, stack conventions, and structure; file-matched files load physics equations only for model code and data rules only for data code.
-- **Property-based testing:** 16 physics and scoring properties linked to requirements.
+- **Property-based testing:** 18 physics and scoring properties linked to requirements — these caught the v1 score-monotonicity bug and an area-rule counterexample that example tests would have missed.
 - **Agent hooks:** model tests on save, snapshot validation on save, and a manual log hook.
-- **MCP:** fetch (reading real ERDDAP data), AWS documentation (deployment), Playwright (UI checks and screenshots).
+- **MCP:** fetch (confirming real ERDDAP data URLs and schemas), AWS documentation (GitHub Pages / Bedrock deployment steps), and Playwright (driving the live app to debug a blank-basemap tile-URL bug and verify UI changes in-browser).
 - **Kiro IDE and Kiro CLI:** engine and UI in the IDE; data pipeline in the CLI.
 
 ## Project structure
