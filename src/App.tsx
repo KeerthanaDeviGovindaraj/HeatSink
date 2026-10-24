@@ -4,6 +4,7 @@ import { ErrorCard } from './components/ErrorCard';
 import { Footer } from './components/Footer';
 import { MapView } from './components/MapView';
 import { PlumePanel } from './components/PlumePanel';
+import { ReportPanel } from './components/ReportPanel';
 import {
   DEFAULT_SITE_PARAMS,
   SiteEditor,
@@ -201,6 +202,18 @@ export function App() {
 
   const compareFull = savedSites.length >= MAX_COMPARE_SITES;
 
+  // Label for the summary (R7.1/R7.3): the matching preset name when the
+  // current outfall sits on a preset, otherwise "Custom site" (custom sites use
+  // the deterministic template).
+  const siteLabel = useMemo(() => {
+    if (!result) return 'Custom site';
+    const { lat, lon } = result.inputs;
+    const preset = PRESET_SITES.find(
+      (p) => p.inputs.lat === lat && p.inputs.lon === lon,
+    );
+    return preset ? preset.name : 'Custom site';
+  }, [result]);
+
   return (
     <>
       <header style={{ padding: '0.75rem 1rem', background: '#0b3d5c', color: '#fff' }}>
@@ -347,6 +360,14 @@ export function App() {
                   selectedId={selectedSpeciesId}
                   onSelect={setSelectedSpeciesId}
                 />
+                {result && (
+                  <ReportPanel
+                    result={result}
+                    species={shownSpecies}
+                    metas={metas}
+                    siteLabel={siteLabel}
+                  />
+                )}
               </div>
             </div>
             <div style={{ marginTop: '1rem' }}>
