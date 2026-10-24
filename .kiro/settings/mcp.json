@@ -1,12 +1,12 @@
 {
   "mcpServers": {
     "fetch": {
-      "command": "uvx",
+      "command": "/opt/homebrew/bin/uvx",
       "args": ["mcp-server-fetch"],
       "disabled": false
     },
     "aws-docs": {
-      "command": "uvx",
+      "command": "/opt/homebrew/bin/uvx",
       "args": ["awslabs.aws-documentation-mcp-server@latest"],
       "env": { "FASTMCP_LOG_LEVEL": "ERROR" },
       "disabled": false
