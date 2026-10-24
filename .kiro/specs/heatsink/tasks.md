@@ -67,4 +67,4 @@ Numbering matches TEAM_PLAN.md. A = Engine + Kiro (src/model, tests/model, .kiro
   - [~] 10.1 (A) Deploy; phone check on live link. _NFR_
   - [x] 10.2 (B) README: live link, problem, data sources, assumptions, team. _Submission_
   - [~] 10.3 (B) Video < 3 min, public. _Submission_
-  - [~] 10.4 (A) KIRO_PLAYBOOK → "How Kiro was used" write-up; submit. _Submission_
+  - [x] 10.4 (A) KIRO_PLAYBOOK → "How Kiro was used" write-up; submit. _Submission_

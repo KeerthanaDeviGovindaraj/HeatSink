@@ -55,6 +55,8 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 15:35 | Merge main into keerthana to catch up branch | other | Merged origin/main (29 commits) into keerthana, no conflicts; tsc + 150 tests green; pushed 69b1480 |
 | 15:37 | Update spec to v2.2 (maxSafeMW, share link, print brief) | spec task | Added-only edits to thermal-model, requirements (R11-13, P17-18+22-23), design, tasks (sections 11-13); no existing content/checkmarks changed |
 | 15:38 | Commit + push spec v2.2, open PR #13 to main | spec task | Pushed 81258c0 to keerthana; PR #13 (keerthana->main) open and MERGEABLE; excluded mcp.json (leaked PAT) |
+| 15:44 | Tasks 11.1-11.2: maxSafeMW engine + P17/P18 property tests | property test | maxSafe.ts binary search reusing sample points; P17/P18 pass (null case + facilityMW independence); 153 tests green; pushed c50fd10 |
+| 15:48 | PR #14 (maxSafe), submission-rules audit, 10.4 write-up | spec task | Opened PR #14; audited vs Hackachusetts rules (repo/.kiro/PBT/license OK, video 10.3 still TODO); wrote docs/HOW_KIRO_WAS_USED.md, pushed 699250a |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:
