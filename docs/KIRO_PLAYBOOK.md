@@ -22,7 +22,7 @@ Fill this in AS YOU GO. It becomes the "How Kiro was used" write-up required by 
 Record: what MCP let us do that would have been hard otherwise.
 
 ## 3. Property-based testing (Correctness)
-Our model is physics, which has natural invariants — ideal for PBT. The 14 properties live in `.kiro/steering/thermal-model.md` and as EARS criteria in Requirement 10. v1 of the spec had a score formula that violated property 9 (more heat could lower the score); record how this was found and fixed. Record any bug PBT found that a unit test missed (e.g., negative excess from a sign error, energy not conserved when mixing ratio > 0).
+Our model is physics, which has natural invariants — ideal for PBT. The 16 properties live in `.kiro/steering/thermal-model.md` and as EARS criteria in Requirement 10. v1 of the spec had a score formula that violated property 9 (more heat could lower the score); record how this was found and fixed. v2 → v2.1 added the land mask and the negligible-first rule after a counterexample to property 13; record that too. Record any bug PBT found that a unit test missed (e.g., negative excess from a sign error, energy not conserved when mixing ratio > 0).
 
 ## 4. Steering strategy
 - `always` files hold product honesty rules and stack conventions so every generation respects them.

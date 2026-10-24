@@ -2,11 +2,15 @@
 inclusion: fileMatch
 fileMatchPattern: ["src/model/**", "tests/**"]
 ---
-# Thermal screening model — equations and assumptions (v2)
+# Thermal screening model — equations and assumptions (v2.1)
 
 Changes from v1: impacts are computed on a fine sampling grid (not 7 km cells); the site score
 is based on newly exceeded AREA (fixes the score-monotonicity bug and divide-by-zero); bottom
 effects are limited to shallow water; properties 11–14 added.
+
+Changes from v2 (v2.1): sample points on land are discarded (fixes false "Insufficient data" at coastal
+sites and plumes drawn over towns); excess below NEGLIGIBLE_C is zeroed before any threshold test
+(fixes a counterexample to property 13); properties 15–16 added.
 
 ## Constants (define once in `src/model/constants.ts`)
 - Seawater density RHO = 1025 kg/m³
@@ -18,6 +22,7 @@ effects are limited to shallow water; properties 11–14 added.
 - SHALLOW_DEPTH_M = 20 (ASSUMPTION: discharge is treated as reaching the bottom only at or above this depth)
 - AREA_SCALE_KM2 = 5 (ASSUMPTION: score calibration constant, see Site score)
 - MIN_COVERAGE = 0.5 (minimum share of plume points with baseline data for a valid score)
+- LAND_MASK = `public/data/ma-land.geojson` (simplified Massachusetts land polygons, committed)
 
 ## Input bounds (validated; out-of-range inputs throw a typed error)
 - facilityMW: 1–500 · deltaTC: 1–10 · mixRatio: 0–5 · heatFraction: 0.80–0.95
@@ -44,11 +49,14 @@ effects are limited to shallow water; properties 11–14 added.
 
 ## Fine sampling grid
 - Generate sample points on a square grid with SAMPLE_SPACING_M spacing, centered on the outfall, keeping points with distance ≤ R_REF_M.
+- Discard every point that falls inside LAND_MASK. All later counts (plume, coverage, areas) use water points only.
+- The outfall itself must be in water; an outfall on land throws a typed error (the UI prevents it).
 - Each point's baseline = the baseline cell that contains it (FIShBOT ~7 km cells), or null if none.
 - Each point's depth = containing cell's depth if available, else null.
 
 ## Bottom effect (shallow-water rule)
-- `bottomExcessC(point) = excessC(r)` if depth is null or depth ≤ SHALLOW_DEPTH_M; otherwise 0, and the point is flagged `deepSurfaceOnly = true`.
+- Negligible rule first: if `excessC(r) < NEGLIGIBLE_C` then `bottomExcessC = 0` (no further tests).
+- Otherwise `bottomExcessC(point) = excessC(r)` if depth is null or depth ≤ SHALLOW_DEPTH_M; otherwise 0, and the point is flagged `deepSurfaceOnly = true`.
 - Depth null is treated as shallow (conservative) and shown as "depth unknown".
 - `combinedC(point) = baselineC + bottomExcessC` when baseline exists; otherwise null ("no data").
 
@@ -58,7 +66,7 @@ effects are limited to shallow water; properties 11–14 added.
   - NEWLY EXCEEDED point: baselineC < T* AND combinedC ≥ T*.
   - ALREADY EXCEEDED point: baselineC ≥ T*.
   - `newlyExceededKm2` = count(newly exceeded) × 0.0625; `alreadyExceededKm2` likewise.
-- `coverage` = (plume points with baseline data) / (plume points), or 1 when the plume has no points.
+- `coverage` = (plume points with baseline data) / (plume points), or 1 when the plume has no points. Plume points are water points only.
 
 ## Site score (per species)
 - `score = 100 * (1 - exp(-newlyExceededKm2 / AREA_SCALE_KM2))`
@@ -88,3 +96,5 @@ water ≤ 20 m deep, placeholder calibration constants. Screening heuristic, NOT
 12. Deep water rule: bottomExcessC == 0 at every point with depth > SHALLOW_DEPTH_M.
 13. Area consistency: 0 ≤ newlyExceededKm2 ≤ plumeAreaKm2 ≤ π·(R_REF_M/1000)² and newly + already ≤ total area with data.
 14. Zero-impact: if newlyExceededKm2 == 0 then score == 0; coverage is always within [0, 1].
+15. Land rule: no retained sample point lies inside LAND_MASK; changing land-point baselines never changes coverage or any area.
+16. Negligible rule: for every point, bottomExcessC == 0 or bottomExcessC ≥ NEGLIGIBLE_C; every newly exceeded point is also a plume point.

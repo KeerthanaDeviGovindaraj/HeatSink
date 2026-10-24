@@ -8,9 +8,10 @@ Start from the hackathon kit zip files; live URLs are optional refreshes. Record
 
 | Source | Use | Citation | Notes |
 |---|---|---|---|
-| FIShBOT, Commercial Fisheries Research Foundation ERDDAP | Gridded bottom temperature baseline (~7 km cells) | Cite the foundation | Read the README; keep mean, variability, observation count, depth if present. Blended grid = MODELED. |
+| FIShBOT, Commercial Fisheries Research Foundation ERDDAP | Gridded bottom temperature baseline (~7 km cells) | Cite the foundation | Read the README; keep mean, variability, observation count, depth if present. Label as "MEASURED (gridded daily average)"; show the ~7 km cell size. |
 | eMOLT bottom temperature (ERDDAP) | Measured boat points | Cite the eMOLT program and the fishing vessels that collected it | Kit URL `erddap.ondeckdata.com/.../emolt_data.csv` redirected to `erddap.emolt.net/.../eMOLT_RT.csv` and errored; confirm before relying on it. Kit slice is one week (Aug 2024): no trends from it. |
 | NOAA NDBC buoy 44013 | Surface water temperature context near Boston | Cite NOAA NDBC | Missing values ("MM") → null. |
+| Simplified MA land polygons (`public/data/ma-land.geojson`) | Land mask for sample points and outfall check | Cite the source used (e.g., MassGIS) | Simplify to a few thousand vertices (e.g., mapshaper) so 20k point-in-polygon tests stay fast. |
 | MassGIS diadromous fish stations (stretch) | River-mouth sensitivity flag | Cite MassGIS; confirm layer terms | No coordinates in kit file. |
 
 ## Rules

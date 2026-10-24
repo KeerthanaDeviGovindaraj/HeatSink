@@ -14,7 +14,7 @@ Town boards and planners, state reviewers, fishers and fisheries advocates.
 ## Honesty rules (apply to every screen and every generated text)
 - HeatSink is a SCREENING tool, not a hydrodynamic model or a permit decision. Say so wherever results appear.
 - The tool must be able to say "Low impact at screening level". It is not anti-AI.
-- Label every layer MEASURED or MODELED. FIShBOT is a blended grid, not a thermometer.
+- Label every layer MEASURED or MODELED (definitions in requirements.md glossary). FIShBOT is labeled "MEASURED (gridded daily average)" and its ~7 km cell size is always shown; it is not a point thermometer.
 - Missing values are null, never 0. Show gaps; never interpolate silently.
 - Never claim a warming trend from a one-week sample.
 - Every number on screen names its source. Every species threshold has a citation.

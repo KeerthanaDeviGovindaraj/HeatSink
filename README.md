@@ -28,13 +28,13 @@ npm test       # unit + property-based tests
 ```
 
 ## Model and assumptions
-See `.kiro/steering/thermal-model.md`. Radially symmetric, no tides or currents, steady state, bottom effect only in water ≤ 20 m deep, placeholder calibration constants.
+See `.kiro/steering/thermal-model.md`. Radially symmetric, no tides or currents, steady state, bottom effect only in water ≤ 20 m deep, land points excluded, placeholder calibration constants.
 
 ## Data sources
 - FIShBOT — Commercial Fisheries Research Foundation
 - eMOLT — the eMOLT program and the fishing vessels that collected the data
 - NOAA National Data Buoy Center, buoy 44013
-- MassGIS (diadromous fish stations)
+- MassGIS (land polygons for the land mask; diadromous fish stations)
 
 ## How we used Kiro
 See `docs/KIRO_PLAYBOOK.md` (specs, steering, hooks, MCP, property-based testing).
