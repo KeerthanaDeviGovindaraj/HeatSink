@@ -4,11 +4,12 @@
     {
       "name": "Playbook logger",
       "trigger": "Stop",
-      "description": "When an agent execution completes, appends a one-line entry to section 6 of docs/KIRO_PLAYBOOK.md so the write-up builds itself.",
       "action": {
         "type": "agent",
         "prompt": "Append one Markdown table row to the \"## 6. Log\" table in docs/KIRO_PLAYBOOK.md summarizing the task that was just completed. Use the columns: Time (current local time, HH:MM), Task (short description of what was done), Kiro feature (spec task / hook / steering / MCP / property test / scaffold / other), What happened (one sentence outcome). Only append a single new row to the existing table; do not modify any other part of the file. If the task was trivial or purely conversational with no repo change, skip it and do nothing."
-      }
+      },
+      "description": "When an agent execution completes, appends a one-line entry to section 6 of docs/KIRO_PLAYBOOK.md so the write-up builds itself.",
+      "enabled": true
     }
   ]
 }

@@ -12,3 +12,8 @@ export function toMGD(flowM3s: number): number {
 export function fromMGD(flowMGD: number): number {
   return flowMGD / MGD_PER_M3S;
 }
+
+/** Convert a temperature from Celsius to Fahrenheit. */
+export function cToF(tempC: number): number {
+  return (tempC * 9) / 5 + 32;
+}

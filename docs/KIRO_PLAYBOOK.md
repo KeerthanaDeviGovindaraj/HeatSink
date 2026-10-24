@@ -37,6 +37,9 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 |---|---|---|---|
 | | | | |
 | 12:23 | Scaffold Vite+React+TS app, deps, scripts, folders | scaffold | npm test/build/dev all pass; repaired corrupted scaffold files, .kiro not gitignored |
+| 12:27 | Commit Task 1 scaffold | spec task | Committed scaffold (13 files) excluding mcp.json which held a leaked GitHub token |
+| 12:29 | Task 2.0 types.ts per design.md | spec task | Rewrote src/model/types.ts to exact design.md shapes (R10); tsc strict clean on the file |
+| 12:36 | Task 2.1 constants + units (+cToF); unblock build | spec task | Verified constants, added cToF, stubbed stale files with TODOs; npm run build + test green |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:

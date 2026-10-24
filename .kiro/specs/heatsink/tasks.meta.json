@@ -12,6 +12,20 @@
         "chatSessionId": "sess_3d0a7d11-37f5-42a5-b7ee-56a587558b96",
         "timestamp": 1792859017790
       }
+    ],
+    "2.0 Create `src/model/types.ts` exactly as in design.md; push before anything else. _R10_": [
+      {
+        "executionId": "2651f1f7-387e-48f5-8e40-38e11143b5b0",
+        "chatSessionId": "sess_3d0a7d11-37f5-42a5-b7ee-56a587558b96",
+        "timestamp": 1792859246587
+      }
+    ],
+    "2.1 `constants.ts` and `units.ts`. _R3.5_": [
+      {
+        "executionId": "c272a978-ef08-4ef0-b7e7-deac2c40f9bc",
+        "chatSessionId": "sess_3d0a7d11-37f5-42a5-b7ee-56a587558b96",
+        "timestamp": 1792859675030
+      }
     ]
   }
 }

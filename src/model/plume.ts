@@ -1,13 +1,4 @@
-/**
- * Apply the plume and shallow-water bottom-effect rules to sample points. Pure, no I/O.
- * Implemented in a later task (see thermal-model.md "Bottom effect").
- */
-import type { FlowResult, SamplePoint } from './types';
-
-/**
- * Populate excessC, bottomExcessC, combinedC, and deepSurfaceOnly for each point.
- * Implemented in a later task.
- */
-export function applyPlume(_points: SamplePoint[], _flow: FlowResult): SamplePoint[] {
-  throw new Error('applyPlume not implemented yet');
-}
+// TODO Task 3.2 — implement excessAt(r, thermal), impacts(points, thermal)
+// (negligible rule first, then shallow-water rule) and sumImpacts(list) per
+// .kiro/steering/thermal-model.md. Placeholder stub so the build compiles.
+export {};

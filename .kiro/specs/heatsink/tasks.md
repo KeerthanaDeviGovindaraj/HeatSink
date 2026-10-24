@@ -7,8 +7,8 @@ Numbering matches TEAM_PLAN.md. A = Engine + Kiro (src/model, tests/model, .kiro
   - [x] 1.2 Create folders per structure.md; verify `.kiro/` not in .gitignore. _NFR_
 
 - [ ] 2. Model core (A)
-  - [ ] 2.0 Create `src/model/types.ts` exactly as in design.md; push before anything else. _R10_
-  - [ ] 2.1 `constants.ts` and `units.ts`. _R3.5_
+  - [x] 2.0 Create `src/model/types.ts` exactly as in design.md; push before anything else. _R10_
+  - [x] 2.1 `constants.ts` and `units.ts`. _R3.5_
   - [ ] 2.2 Property test P10 (units round trip). _R10.1_
   - [ ] 2.3 `thermal.ts` computeThermal with bounds validation, mixing, L, reach. _R3.3, R3.5, R4.5_
   - [ ] 2.4 Property tests P1, P5, P6, P11; unit test 90 MW/5 °C ≈ 4.40 m³/s ≈ 100 MGD; InputRangeError tests. _R10.1, R10.3, R10.4_
