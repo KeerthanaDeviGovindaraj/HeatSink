@@ -7,7 +7,7 @@
 | | |
 |---|---|
 | **Live demo** | https://keerthanadevigovindaraj.github.io/HeatSink/ (free, no login) |
-| **Demo video (< 3 min)** | _TODO: add the public video link before submitting (task 10.3)_ |
+| **Demo video (< 3 min)** | https://youtu.be/4AGqKQUWBaI|
 | **Track** | ClimaTech & Clean Energy |
 | **Built with** | Kiro IDE + Kiro CLI (specs, steering, hooks, MCP, property-based testing) |
 | **How Kiro was used** | [docs/HOW_KIRO_WAS_USED.md](docs/HOW_KIRO_WAS_USED.md) |
