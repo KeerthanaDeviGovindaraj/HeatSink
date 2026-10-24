@@ -26,6 +26,241 @@
         "chatSessionId": "sess_3d0a7d11-37f5-42a5-b7ee-56a587558b96",
         "timestamp": 1792859675030
       }
+    ],
+    "2.2 Property test P10 (units round trip). _R10.1_": [
+      {
+        "executionId": "c90c96f3-40eb-44e4-ae2c-05dcc0c10096",
+        "chatSessionId": "sess_afe36b0b-f2ae-4068-bf2f-8d44478a56f6",
+        "timestamp": 1792860518189
+      }
+    ],
+    "2.3 `thermal.ts` computeThermal with bounds validation, mixing, L, reach. _R3.3, R3.5, R4.5_": [
+      {
+        "executionId": "b23b9b51-2e85-4731-8468-93010a100370",
+        "chatSessionId": "sess_d8a9bffd-f698-4916-aa9a-c1791fe1723e",
+        "timestamp": 1792860679941
+      },
+      {
+        "executionId": "b23b9b51-2e85-4731-8468-93010a100370",
+        "chatSessionId": "sess_d8a9bffd-f698-4916-aa9a-c1791fe1723e",
+        "timestamp": 1792860785042
+      }
+    ],
+    "2.4 Property tests P1, P5, P6, P11; unit test 90 MW/5 °C ≈ 4.40 m³/s ≈ 100 MGD; InputRangeError tests. _R10.1, R10.3, R10.4_": [
+      {
+        "executionId": "66a389b9-4045-408f-a012-327cc799077b",
+        "chatSessionId": "sess_ddb30bda-b631-491b-9ed3-06c58e6194c2",
+        "timestamp": 1792860838156
+      }
+    ],
+    "3.1 `grid.ts`: haversineM, samplePoints with land mask and containing-cell baseline/depth. _R4.1_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019457
+      },
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861027156
+      }
+    ],
+    "3.2 `plume.ts`: excessAt, impacts (negligible rule then shallow rule), sumImpacts. _R4.2, R4.3, R8_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019510
+      },
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861136811
+      }
+    ],
+    "3.3 `risk.ts` (area-based score, coverage, levels) and `runSite.ts` with OutfallOnLandError. _R6.1, R6.2, R3.2_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019541
+      },
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861241373
+      }
+    ],
+    "3.4 Property tests P2–P4, P7, P9, P12–P16. _R10.1_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019574
+      },
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861366360
+      }
+    ],
+    "4.1 Confirm FIShBOT and eMOLT URLs with fetch MCP; record in ocean-data.md. _R2.1_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019607
+      }
+    ],
+    "4.2 Validators in src/data + property tests in tests/data. _R2.2, R2.3, R10.2_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019669
+      }
+    ],
+    "4.3 `fetch-fishbot.ts` → bottom-temp snapshot with meta (fallback: kit files). _R2.1_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019704
+      }
+    ],
+    "4.4 `fetch-emolt.ts` and `fetch-ndbc.ts` → snapshots with meta. _R2.1, R2.3, R2.5_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019741
+      }
+    ],
+    "4.5 Commit simplified `ma-land.geojson` with citation. _R3.2, R4.1_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019775
+      }
+    ],
+    "4.6 `species.json` (lobster, winter flounder) with sources and verified flags. _R5.1–R5.3_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019807
+      }
+    ],
+    "5.1 MapView baseline, colorblind scale, °C/°F legend, no-data styling, tooltip. _R1.1, R1.2, R1.4, R1.5_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019840
+      }
+    ],
+    "5.2 Choose 4 preset sites; verify each has coverage ≥ 0.5 with runSite. _R3.1, R6.2_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019873
+      }
+    ],
+    "5.3 Footer, MEASURED/MODELED labels, error card. _R1.3, R1.6, R1.7_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019907
+      }
+    ],
+    "6.1 Click-to-place with land message. _R3.2_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019940
+      }
+    ],
+    "6.2 SiteEditor sliders, flow card (MW, m³/s, MGD) and Brayton line. _R3.3–R3.5_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861019974
+      }
+    ],
+    "6.3 Plume rings, area/reach, deep/unknown-depth styling, AssumptionsBanner. _R4.3, R4.4, R4.6_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020008
+      }
+    ],
+    "7.1 SpeciesPicker + exceedance overlay (newly vs already). _R5.2–R5.4_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020042
+      }
+    ],
+    "7.2 CompareTable (≤ 4 sites, lowest risk first, coverage, \"Low impact at screening level\", assumptions). _R6.2–R6.5_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020089
+      }
+    ],
+    "8.1 (B) ReportPanel template summary; copy + download. _R7.1, R7.2_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020124
+      }
+    ],
+    "8.2 (A, stretch) `scripts/summaries.ts` build-time Bedrock summaries for presets. _R7.3_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020159
+      }
+    ],
+    "9.1 (stretch) Cumulative mode UI using sumImpacts; P8 test. _R8_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020197
+      }
+    ],
+    "9.2 (stretch) Diadromous stations layer and reach flag. _R9_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020245
+      }
+    ],
+    "10.1 (A) Deploy; phone check on live link. _NFR_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020323
+      }
+    ],
+    "10.2 (B) README: live link, problem, data sources, assumptions, team. _Submission_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020357
+      }
+    ],
+    "10.3 (B) Video < 3 min, public. _Submission_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020389
+      }
+    ],
+    "10.4 (A) KIRO_PLAYBOOK → \"How Kiro was used\" write-up; submit. _Submission_": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861020422
+      }
+    ],
+    "3. Grid, plume, risk (A)": [
+      {
+        "executionId": "b9de3156-57bc-4e4b-bef1-b0fdb9c3208e",
+        "chatSessionId": "sess_cff77e1a-76aa-4d4b-a197-6392689b7bfc",
+        "timestamp": 1792861597756
+      }
     ]
   }
 }
