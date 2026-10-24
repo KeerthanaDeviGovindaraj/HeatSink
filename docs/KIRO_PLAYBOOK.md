@@ -45,6 +45,12 @@ Note every surface tried (IDE, CLI, Web, Crew) and how they differed. Ideas: IDE
 | 12:53 | Task 2.3 thermal.ts computeThermal (bounds, mixing, L, reach) | spec task | Implemented pure computeThermal; added W_PER_MW; tsc + tests green; sanity 90 MW/5 C ~4.40 m3/s ~100 MGD, P11 reach <= R_REF_M (R3.3, R3.5, R4.5) |
 | 12:56 | Task 2.4 property tests P1/P5/P6/P11, 90 MW unit test, InputRangeError tests | property test | Added fast-check suite in tests/model/thermal.test.ts; 19 tests pass; P6 denormal counterexample triaged (generator fixed, property kept) (R10.1, R10.3, R10.4) |
 | 13:06 | Task 3 grid/plume/risk + runSite + property tests P2-P4,P7,P9,P12-P16 | spec task | Implemented pure grid.ts, plume.ts, risk.ts, runSite.ts and 10 fast-check properties; 31 model tests pass, tsc strict clean (R4.1-R4.3, R6.1-R6.2, R3.2, R10.1) |
+| 13:08 | Commit + push Task 3 engine (grid/plume/risk/runSite + property tests) | spec task | Pushed c583488 to keerthana (14 files, 31 tests green); excluded mcp.json which holds a leaked GitHub PAT |
+| 15:14 | Verify main has tasks 1-9 + check Pages deploy setup | other | Built origin/main in clean worktree (107 modules, green); deploy.yml + vite base /HeatSink/ correct; Pages enable + phone check remain manual (admin) |
+| 15:16 | Reconcile tasks.md to match merged main (B did 4-10.2) | spec task | Marked sections 1-9 + 10.2 complete; left 10.1 (manual Pages/phone), 10.3 video, 10.4 write-up open |
+| 15:18 | Install GitHub CLI to enable Pages | other | brew installed gh 2.103.2; Pages enable blocked on gh auth login (interactive admin step), command staged |
+| 15:24 | Enable Pages + deploy live site (gh CLI) | other | gh auth confirmed admin; re-ran deploy.yml (build+deploy green); live at https://keerthanadevigovindaraj.github.io/HeatSink/ (200, correct base); phone check still manual |
+| 15:29 | Fix live Pages data 404 (loaders BASE_URL) | spec task | PR #12: DATA_BASE now uses import.meta.env.BASE_URL so data serves at /HeatSink/data/*; merged, redeployed green, live map loads (200), 150 tests pass |
 
 ## 7. Spec-driven vs vibe coding (write at the end)
 - How the spec structured the work:
