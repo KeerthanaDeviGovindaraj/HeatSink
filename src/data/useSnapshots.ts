@@ -8,9 +8,15 @@
  * and NDBC are context-only: their meta feeds the Footer, and a failure for
  * either leaves its meta undefined (Footer shows "unavailable") without blocking
  * the map.
+ *
+ * The land mask (R3.2) is loaded alongside the snapshots so the browser has the
+ * polygons for the click-to-place land test. It is optional-ish: a failure
+ * yields `land: null` (the UI can still place points, but notes the land check
+ * is unavailable) rather than blanking the baseline map.
  */
 import { useEffect, useState } from 'react';
-import { loadEmolt, loadFishbot, loadNdbc } from './loaders';
+import type { FeatureCollection } from 'geojson';
+import { loadEmolt, loadFishbot, loadLandMask, loadNdbc } from './loaders';
 import type { OceanRow, SnapshotMeta } from './types';
 
 /** Snapshot meta blocks the Footer renders, keyed by source. */
@@ -23,7 +29,13 @@ export interface SourceMetas {
 export type SnapshotsState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; baseline: OceanRow[]; metas: SourceMetas };
+  | {
+      status: 'ready';
+      baseline: OceanRow[];
+      metas: SourceMetas;
+      /** MA land polygons for the click-to-place land test; null if unavailable. */
+      land: FeatureCollection | null;
+    };
 
 export function useSnapshots(): SnapshotsState {
   const [state, setState] = useState<SnapshotsState>({ status: 'loading' });
@@ -31,10 +43,10 @@ export function useSnapshots(): SnapshotsState {
   useEffect(() => {
     let active = true;
 
-    // Baseline (FIShBOT) is required; eMOLT/NDBC are optional context. Use
-    // allSettled so one optional miss doesn't blank the map.
-    Promise.allSettled([loadFishbot(), loadEmolt(), loadNdbc()])
-      .then(([fishbot, emolt, ndbc]) => {
+    // Baseline (FIShBOT) is required; eMOLT/NDBC and the land mask are optional.
+    // Use allSettled so one optional miss doesn't blank the map.
+    Promise.allSettled([loadFishbot(), loadEmolt(), loadNdbc(), loadLandMask()])
+      .then(([fishbot, emolt, ndbc, land]) => {
         if (!active) return;
 
         if (fishbot.status === 'rejected') {
@@ -48,7 +60,12 @@ export function useSnapshots(): SnapshotsState {
         if (emolt.status === 'fulfilled') metas.emolt = emolt.value.meta;
         if (ndbc.status === 'fulfilled') metas.ndbc = ndbc.value.meta;
 
-        setState({ status: 'ready', baseline: fishbot.value.rows, metas });
+        setState({
+          status: 'ready',
+          baseline: fishbot.value.rows,
+          metas,
+          land: land.status === 'fulfilled' ? land.value : null,
+        });
       })
       .catch((err: unknown) => {
         if (!active) return;

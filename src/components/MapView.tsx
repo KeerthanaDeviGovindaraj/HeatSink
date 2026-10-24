@@ -11,8 +11,15 @@
  * shared ErrorCard instead of a blank map (R1.7). Plume overlay and
  * click-to-place arrive in later tasks.
  */
-import { CircleMarker, MapContainer, TileLayer, Tooltip } from 'react-leaflet';
+import {
+  CircleMarker,
+  MapContainer,
+  TileLayer,
+  Tooltip,
+  useMapEvents,
+} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import type { LatLon } from '../model/grid';
 import type { OceanRow } from '../data/types';
 import {
   NO_DATA_COLOR,
@@ -32,14 +39,34 @@ const OSM_ATTRIBUTION = '&copy; OpenStreetMap contributors';
 
 const BASELINE_LABEL = layerLabel('fishbot');
 
+/** Outfall marker color (MODELED placement, distinct from baseline cells). */
+const OUTFALL_COLOR = '#d81b60';
+
 export interface MapViewProps {
   /** Baseline FIShBOT rows to plot. */
   rows: OceanRow[];
   /** Date window label for the baseline snapshot, shown in each tooltip. */
   window: string;
+  /** Currently placed outfall, or null when none is placed yet (R3.2). */
+  outfall?: LatLon | null;
+  /** Called with the clicked location on every map click (R3.2). */
+  onMapClick?: (latlng: LatLon) => void;
 }
 
-export function MapView({ rows, window }: MapViewProps) {
+/**
+ * Invisible child that forwards Leaflet map clicks to `onClick`. Must live
+ * inside <MapContainer> so react-leaflet's `useMapEvents` can bind to the map.
+ */
+function ClickCapture({ onClick }: { onClick?: ((latlng: LatLon) => void) | undefined }) {
+  useMapEvents({
+    click(e) {
+      onClick?.({ lat: e.latlng.lat, lon: e.latlng.lng });
+    },
+  });
+  return null;
+}
+
+export function MapView({ rows, window, outfall, onMapClick }: MapViewProps) {
   return (
     <div data-testid="map-view" style={{ position: 'relative' }}>
       <MapContainer
@@ -49,6 +76,25 @@ export function MapView({ rows, window }: MapViewProps) {
         scrollWheelZoom
       >
         <TileLayer url={OSM_TILE_URL} attribution={OSM_ATTRIBUTION} />
+        <ClickCapture onClick={onMapClick} />
+        {outfall && (
+          <CircleMarker
+            center={[outfall.lat, outfall.lon]}
+            radius={10}
+            pathOptions={{
+              color: '#222',
+              weight: 2,
+              fillColor: OUTFALL_COLOR,
+              fillOpacity: 0.9,
+            }}
+          >
+            <Tooltip permanent direction="top" offset={[0, -8]}>
+              <strong>Outfall (MODELED)</strong>
+              <br />
+              {outfall.lat.toFixed(4)}, {outfall.lon.toFixed(4)}
+            </Tooltip>
+          </CircleMarker>
+        )}
         {rows.map((row, i) => {
           const noData = isNoData(row.tempC);
           return (
